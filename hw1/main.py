@@ -20,9 +20,9 @@ def print_menu():
 
 def run_task(task_number):
 	tasks = {
-		'1': ('object_detection', 'detect_objects'),
-		'2': ('video_analysis', 'analyze_video'),
-		'3': ('local_chat', 'chat')
+		'1': ('image', 'detect_objects'),
+		'2': ('video', 'simple_video_analysis'),
+		'3': ('llm', 'simple_chat')
 	}
 
 	if task_number in tasks:
