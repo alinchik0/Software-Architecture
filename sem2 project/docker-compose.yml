@@ -1,0 +1,79 @@
+#version: "3.9"
+
+services:
+
+  # ---------- DATABASES ----------
+  users-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+
+  posts-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: posts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
+
+  # ---------- USER SERVICE ----------
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "8001:8001"
+    depends_on:
+      - users-db
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@users-db:5432/users_db
+
+
+  # ---------- POST SERVICE ----------
+  post-service:
+    build: ./services/post-service
+    ports:
+      - "8002:8002"
+    depends_on:
+      - posts-db
+      - notification-service
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@posts-db:5432/posts_db
+
+
+  # ---------- NOTIFICATION SERVICE ----------
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "8003:8003"
+    depends_on:
+      - mongo
+
+
+  # ---------- GATEWAY ----------
+  gateway:
+    build: ./gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - user-service
+      - post-service
+      - notification-service
+
+
+  # ---------- FRONTEND ----------
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - gateway
