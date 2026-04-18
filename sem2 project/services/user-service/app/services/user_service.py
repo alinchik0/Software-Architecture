@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.user_model import User, Follow
+from app.core.security import hash_password
 
 
 def create_user(db: Session, user_data):
@@ -9,7 +10,7 @@ def create_user(db: Session, user_data):
 
     user = User(
         username=user_data.username,
-        password=user_data.password,
+        password=hash_password(user_data.password),
         bio=user_data.bio
     )
 

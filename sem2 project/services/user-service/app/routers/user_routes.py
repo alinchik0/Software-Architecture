@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.models.user_model import UserCreate, UserUpdate, UserResponse
+from app.models.auth_model import LoginRequest, TokenResponse, AuthenticatedUser
 from app.controllers.user_controller import (
     register_user,
     list_users,
@@ -11,9 +13,11 @@ from app.controllers.user_controller import (
     follow,
     unfollow
 )
+from app.controllers.auth_controller import login_user, get_authenticated_user
 from app.data.database import SessionLocal
 
 router = APIRouter(prefix="/users", tags=["Users"])
+security = HTTPBearer()
 
 
 def get_db():
@@ -30,6 +34,25 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     if not new_user:
         raise HTTPException(status_code=400, detail="Username exists")
     return new_user
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+    token = login_user(db, credentials.username, credentials.password)
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    return token
+
+
+@router.get("/me", response_model=AuthenticatedUser)
+def me(
+    auth: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    user = get_authenticated_user(db, auth.credentials)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token user")
+    return {"id": user.id, "username": user.username}
 
 
 @router.get("/", response_model=List[UserResponse])
