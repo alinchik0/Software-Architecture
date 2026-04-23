@@ -1,9 +1,12 @@
 langchain>=0.2.0
 langchain-ollama
 langchain-chroma
+langchain-community
 langgraph
 chromadb
 fastapi
 uvicorn
 pydantic
 python-dotenv
+python-multipart
+pypdf
