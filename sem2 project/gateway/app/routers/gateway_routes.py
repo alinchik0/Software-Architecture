@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 import httpx
 
 router = APIRouter()
@@ -6,7 +6,6 @@ router = APIRouter()
 USER_SERVICE_URL = "http://user-service:8000"
 POST_SERVICE_URL = "http://post-service:8000"
 NOTIFICATION_SERVICE_URL = "http://notification-service:8000"
-AUTH_SERVICE_URL = "http://auth-service:8000"
 
 
 async def proxy_request(request: Request, base_url: str, path: str):
@@ -17,7 +16,9 @@ async def proxy_request(request: Request, base_url: str, path: str):
 
         # прокидываем user_id если есть
         if hasattr(request.state, "user"):
-            headers["x-user-id"] = str(request.state.user.get("user_id"))
+            token_user_id = request.state.user.get("sub")
+            if token_user_id is not None:
+                headers["x-user-id"] = str(token_user_id)
 
         response = await client.request(
             method=request.method,
@@ -26,13 +27,18 @@ async def proxy_request(request: Request, base_url: str, path: str):
             content=await request.body()
         )
 
-        return response.json()
-
-
-# ---- AUTH SERVICE ----
-@router.api_route("/auth/{path:path}", methods=["GET", "POST"])
-async def proxy_auth(request: Request, path: str):
-    return await proxy_request(request, AUTH_SERVICE_URL, f"auth/{path}")
+        excluded_headers = {"content-length", "transfer-encoding", "connection"}
+        response_headers = {
+            key: value
+            for key, value in response.headers.items()
+            if key.lower() not in excluded_headers
+        }
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=response_headers,
+            media_type=response.headers.get("content-type")
+        )
 
 
 # ---- USER SERVICE ----

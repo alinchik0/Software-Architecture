@@ -36,6 +36,9 @@ services:
       - users-db
     environment:
       DATABASE_URL: postgresql://postgres:postgres@users-db:5432/users_db
+      JWT_SECRET_KEY: your-secret-key
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_MINUTES: 60
 
 
   # ---------- POST SERVICE ----------
@@ -68,6 +71,9 @@ services:
       - user-service
       - post-service
       - notification-service
+    environment:
+      JWT_SECRET_KEY: your-secret-key
+      JWT_ALGORITHM: HS256
 
 
   # ---------- FRONTEND ----------
