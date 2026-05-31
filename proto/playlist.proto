@@ -1,0 +1,24 @@
+// proto/playlist.proto
+syntax = "proto3";
+package music.playlist;
+// можно расширять, но не менять существующие поля
+service PlaylistService {
+  rpc CreatePlaylist(CreatePlaylistRequest) returns (PlaylistReply);
+  rpc GetPlaylist(GetPlaylistRequest) returns (PlaylistReply);
+  rpc UpdatePlaylist(UpdatePlaylistRequest) returns (PlaylistReply);
+  rpc DeletePlaylist(DeletePlaylistRequest) returns (Empty);
+  rpc AddTrack(AddTrackRequest) returns (TrackReply);
+  rpc RemoveTrack(RemoveTrackRequest) returns (Empty);
+  rpc ListUserPlaylists(ListUserPlaylistsRequest) returns (PlaylistListReply);
+}
+message Empty {}
+message CreatePlaylistRequest { string owner_id = 1; string title = 2; string description = 3; bool is_public = 4; }
+message GetPlaylistRequest { string playlist_id = 1; string requester_id = 2; }
+message UpdatePlaylistRequest { string playlist_id = 1; string requester_id = 2; string title = 3; string description = 4; string is_public = 5; }
+message DeletePlaylistRequest { string playlist_id = 1; string requester_id = 2; }
+message AddTrackRequest { string playlist_id = 1; string requester_id = 2; string spotify_track_id = 3; int32 position = 4; }
+message RemoveTrackRequest { string playlist_id = 1; string requester_id = 2; string spotify_track_id = 3; }
+message ListUserPlaylistsRequest { string user_id = 1; string requester_id = 2; string visibility = 3; }
+message TrackReply { string playlist_id = 1; string spotify_track_id = 2; int32 position = 3; string added_at = 4; string metadata_json = 5; }
+message PlaylistReply { string id = 1; string owner_id = 2; string title = 3; string description = 4; bool is_public = 5; string created_at = 6; string updated_at = 7; repeated TrackReply tracks = 8; }
+message PlaylistListReply { repeated PlaylistReply playlists = 1; }
