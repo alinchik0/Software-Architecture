@@ -1,0 +1,20 @@
+// proto/user.proto
+syntax = "proto3";
+package music.user;
+// можно расширять, но не менять существующие поля
+service UserService {
+  rpc Register(RegisterRequest) returns (AuthReply);
+  rpc Login(LoginRequest) returns (AuthReply);
+  rpc Refresh(RefreshRequest) returns (TokenReply);
+  rpc GetProfile(ProfileRequest) returns (ProfileReply);
+  rpc UpdateProfile(UpdateProfileRequest) returns (ProfileReply);
+}
+message RegisterRequest { string email = 1; string username = 2; string password = 3; }
+message LoginRequest { string login = 1; string password = 2; }
+message RefreshRequest { string refresh_token = 1; }
+message TokenPair { string access_token = 1; string refresh_token = 2; }
+message TokenReply { string access_token = 1; }
+message AuthReply { string user_id = 1; TokenPair tokens = 2; }
+message ProfileRequest { string user_id = 1; }
+message UpdateProfileRequest { string user_id = 1; string username = 2; string profile_data_json = 3; }
+message ProfileReply { string id = 1; string email = 2; string username = 3; string profile_data_json = 4; string created_at = 5; string updated_at = 6; }
