@@ -1,51 +1,90 @@
-# playlist-service/main.py
-import sys, os, json, logging, asyncio, grpc, threading
+import sys
+import os
+import asyncio
+import logging
+import grpc
 from concurrent import futures
-from confluent_kafka import Consumer
-import asyncpg
+from sqlalchemy import text
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, ROOT)
+
 from config import PlaylistServiceSettings
-from protos.generated import playlist_pb2, playlist_pb2_grpc
+from shared.database import engine
+from shared.models.user import Base
+import shared.models.playlist  # noqa: F401
+from shared.redis_cache import redis_client, close as close_redis
+from kafka_producer import kafka_producer
 
-logging.basicConfig(level=logging.INFO); log = logging.getLogger("playlist-service")
-cfg = PlaylistServiceSettings(); stop_event = threading.Event()
+from playlist_service.protos.generated import playlist_pb2_grpc
+from grpc_playlist_servicer import PlaylistServiceServicer
 
-class PlaylistServicer(playlist_pb2_grpc.PlaylistServiceServicer):
-    def Ping(self, request, context):
-        return playlist_pb2.PingResponse(message="pong from playlist-service")
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("playlist-service")
+cfg = PlaylistServiceSettings()
 
-def _kafka_loop():
-    c = None
+
+async def init_db():
     try:
-        c = Consumer({'bootstrap.servers': cfg.KAFKA_SERVERS, 'group.id': 'playlist-grp', 'auto.offset.reset': 'earliest'})
-        c.subscribe([cfg.KAFKA_TOPIC]); log.info("Subscribed to user.events")
-        while not stop_event.is_set():
-            msg = c.poll(1.0)
-            if msg and msg.error() is None:
-                data = json.loads(msg.value().decode()); log.info(f"Received event: {data.get('event_type')} - {data.get('payload')}")
-    except Exception as e: log.warning(f"Kafka loop stopped: {e}")
-    finally:
-        if c: c.close()
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        log.info("Database initialized")
+    except Exception as e:
+        log.error(f"Failed to initialize database: {e}")
+        raise
 
-async def _init():
+
+async def health_check():
     try:
-        c = await asyncpg.connect(cfg.DATABASE_URL)
-        await c.fetchval("SELECT 1"); await c.close()
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
         log.info("Connected to PostgreSQL")
-    except Exception as e: log.error(f"DB fail: {e}")
+    except Exception as e:
+        log.error(f"PostgreSQL connection failed: {e}")
+        raise
     try:
-        import redis; redis.Redis.from_url(cfg.REDIS_URL).ping(); log.info("Connected to Redis")
-    except Exception as e: log.error(f"Redis fail: {e}")
+        await redis_client.ping()
+        log.info("Connected to Redis")
+    except Exception as e:
+        log.error(f"Redis connection failed: {e}")
+        raise
 
-def run():
-    asyncio.run(_init())
-    threading.Thread(target=_kafka_loop, daemon=True).start()
 
-    srv = grpc.server(futures.ThreadPoolExecutor(10))
-    playlist_pb2_grpc.add_PlaylistServiceServicer_to_server(PlaylistServicer(), srv)
-    srv.add_insecure_port(f"[::]:{cfg.GRPC_PORT}")
-    srv.start(); log.info(f"playlist-service started on port {cfg.GRPC_PORT}")
-    try: srv.wait_for_termination()
-    except KeyboardInterrupt: stop_event.set(); log.info("Shutdown..."); srv.stop(0)
-if __name__ == "__main__": run()
+async def serve():
+    server = None
+    try:
+        await health_check()
+        await init_db()
+        await kafka_producer.start()  # Теперь не падает, если Kafka недоступна
+
+        server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
+        playlist_pb2_grpc.add_PlaylistServiceServicer_to_server(PlaylistServiceServicer(), server)
+
+        listen_addr = f"[::]:{cfg.GRPC_PORT}"
+        server.add_insecure_port(listen_addr)
+        log.info(f"Starting playlist-service on {listen_addr}")
+        await server.start()
+        await server.wait_for_termination()
+    except KeyboardInterrupt:
+        log.info("Received keyboard interrupt")
+    except Exception as e:
+        log.error(f"Server error: {e}")
+        raise
+    finally:
+        log.info("Performing graceful shutdown...")
+        if server:
+            await server.stop(grace=5)
+        await kafka_producer.close()
+        await close_redis()
+        await engine.dispose()
+        log.info("Shutdown complete")
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(serve())
+    except KeyboardInterrupt:
+        log.info("Service stopped by user")
+    except Exception as e:
+        log.error(f"Fatal error: {e}")
+        sys.exit(1)

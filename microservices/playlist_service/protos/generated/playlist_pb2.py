@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0eplaylist.proto\x12\x08playlist\"\r\n\x0bPingRequest\"\x1f\n\x0cPingResponse\x12\x0f\n\x07message\x18\x01 \x01(\t2H\n\x0fPlaylistService\x12\x35\n\x04Ping\x12\x15.playlist.PingRequest\x1a\x16.playlist.PingResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0eplaylist.proto\x12\x08playlist\"\r\n\x0bPingRequest\"\x1f\n\x0cPingResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"`\n\x15\x43reatePlaylistRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\x03\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x11\n\tis_public\x18\x04 \x01(\x08\":\n\x12GetPlaylistRequest\x12\x13\n\x0bplaylist_id\x18\x01 \x01(\x03\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\"\xab\x01\n\x15UpdatePlaylistRequest\x12\x13\n\x0bplaylist_id\x18\x01 \x01(\x03\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\x12\x12\n\x05title\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\x18\n\x0b\x64\x65scription\x18\x04 \x01(\tH\x01\x88\x01\x01\x12\x16\n\tis_public\x18\x05 \x01(\x08H\x02\x88\x01\x01\x42\x08\n\x06_titleB\x0e\n\x0c_descriptionB\x0c\n\n_is_public\"=\n\x15\x44\x65letePlaylistRequest\x12\x13\n\x0bplaylist_id\x18\x01 \x01(\x03\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\"c\n\x0f\x41\x64\x64TrackRequest\x12\x13\n\x0bplaylist_id\x18\x01 \x01(\x03\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\x12\x18\n\x10spotify_track_id\x18\x03 \x01(\t\x12\x10\n\x08position\x18\x04 \x01(\x05\"T\n\x12RemoveTrackRequest\x12\x13\n\x0bplaylist_id\x18\x01 \x01(\x03\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\x12\x18\n\x10spotify_track_id\x18\x03 \x01(\t\"D\n\x18ListUserPlaylistsRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x03\x12\x17\n\x0frequest_user_id\x18\x02 \x01(\x03\"u\n\tTrackInfo\x12\x18\n\x10spotify_track_id\x18\x01 \x01(\t\x12\x10\n\x08position\x18\x02 \x01(\x05\x12\x12\n\x05title\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\x13\n\x06\x61rtist\x18\x04 \x01(\tH\x01\x88\x01\x01\x42\x08\n\x06_titleB\t\n\x07_artist\"\xb7\x01\n\x10PlaylistResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x0bplaylist_id\x18\x03 \x01(\x03\x12\x10\n\x08owner_id\x18\x04 \x01(\x03\x12\r\n\x05title\x18\x05 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x06 \x01(\t\x12\x11\n\tis_public\x18\x07 \x01(\x08\x12#\n\x06tracks\x18\x08 \x03(\x0b\x32\x13.playlist.TrackInfo\"3\n\x0fMessageResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"l\n\x19ListUserPlaylistsResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12-\n\tplaylists\x18\x03 \x03(\x0b\x32\x1a.playlist.PlaylistResponse2\xe7\x04\n\x0fPlaylistService\x12\x35\n\x04Ping\x12\x15.playlist.PingRequest\x1a\x16.playlist.PingResponse\x12M\n\x0e\x43reatePlaylist\x12\x1f.playlist.CreatePlaylistRequest\x1a\x1a.playlist.PlaylistResponse\x12G\n\x0bGetPlaylist\x12\x1c.playlist.GetPlaylistRequest\x1a\x1a.playlist.PlaylistResponse\x12M\n\x0eUpdatePlaylist\x12\x1f.playlist.UpdatePlaylistRequest\x1a\x1a.playlist.PlaylistResponse\x12L\n\x0e\x44\x65letePlaylist\x12\x1f.playlist.DeletePlaylistRequest\x1a\x19.playlist.MessageResponse\x12\x41\n\x08\x41\x64\x64Track\x12\x19.playlist.AddTrackRequest\x1a\x1a.playlist.PlaylistResponse\x12G\n\x0bRemoveTrack\x12\x1c.playlist.RemoveTrackRequest\x1a\x1a.playlist.PlaylistResponse\x12\\\n\x11ListUserPlaylists\x12\".playlist.ListUserPlaylistsRequest\x1a#.playlist.ListUserPlaylistsResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,6 +35,28 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PINGREQUEST']._serialized_end=41
   _globals['_PINGRESPONSE']._serialized_start=43
   _globals['_PINGRESPONSE']._serialized_end=74
-  _globals['_PLAYLISTSERVICE']._serialized_start=76
-  _globals['_PLAYLISTSERVICE']._serialized_end=148
+  _globals['_CREATEPLAYLISTREQUEST']._serialized_start=76
+  _globals['_CREATEPLAYLISTREQUEST']._serialized_end=172
+  _globals['_GETPLAYLISTREQUEST']._serialized_start=174
+  _globals['_GETPLAYLISTREQUEST']._serialized_end=232
+  _globals['_UPDATEPLAYLISTREQUEST']._serialized_start=235
+  _globals['_UPDATEPLAYLISTREQUEST']._serialized_end=406
+  _globals['_DELETEPLAYLISTREQUEST']._serialized_start=408
+  _globals['_DELETEPLAYLISTREQUEST']._serialized_end=469
+  _globals['_ADDTRACKREQUEST']._serialized_start=471
+  _globals['_ADDTRACKREQUEST']._serialized_end=570
+  _globals['_REMOVETRACKREQUEST']._serialized_start=572
+  _globals['_REMOVETRACKREQUEST']._serialized_end=656
+  _globals['_LISTUSERPLAYLISTSREQUEST']._serialized_start=658
+  _globals['_LISTUSERPLAYLISTSREQUEST']._serialized_end=726
+  _globals['_TRACKINFO']._serialized_start=728
+  _globals['_TRACKINFO']._serialized_end=845
+  _globals['_PLAYLISTRESPONSE']._serialized_start=848
+  _globals['_PLAYLISTRESPONSE']._serialized_end=1031
+  _globals['_MESSAGERESPONSE']._serialized_start=1033
+  _globals['_MESSAGERESPONSE']._serialized_end=1084
+  _globals['_LISTUSERPLAYLISTSRESPONSE']._serialized_start=1086
+  _globals['_LISTUSERPLAYLISTSRESPONSE']._serialized_end=1194
+  _globals['_PLAYLISTSERVICE']._serialized_start=1197
+  _globals['_PLAYLISTSERVICE']._serialized_end=1812
 # @@protoc_insertion_point(module_scope)

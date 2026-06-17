@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from .import playlist_pb2 as playlist__pb2
+from playlist_service.protos.generated import playlist_pb2 as playlist__pb2
 
 GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
@@ -39,12 +39,89 @@ class PlaylistServiceStub:
                 request_serializer=playlist__pb2.PingRequest.SerializeToString,
                 response_deserializer=playlist__pb2.PingResponse.FromString,
                 _registered_method=True)
+        self.CreatePlaylist = channel.unary_unary(
+                '/playlist.PlaylistService/CreatePlaylist',
+                request_serializer=playlist__pb2.CreatePlaylistRequest.SerializeToString,
+                response_deserializer=playlist__pb2.PlaylistResponse.FromString,
+                _registered_method=True)
+        self.GetPlaylist = channel.unary_unary(
+                '/playlist.PlaylistService/GetPlaylist',
+                request_serializer=playlist__pb2.GetPlaylistRequest.SerializeToString,
+                response_deserializer=playlist__pb2.PlaylistResponse.FromString,
+                _registered_method=True)
+        self.UpdatePlaylist = channel.unary_unary(
+                '/playlist.PlaylistService/UpdatePlaylist',
+                request_serializer=playlist__pb2.UpdatePlaylistRequest.SerializeToString,
+                response_deserializer=playlist__pb2.PlaylistResponse.FromString,
+                _registered_method=True)
+        self.DeletePlaylist = channel.unary_unary(
+                '/playlist.PlaylistService/DeletePlaylist',
+                request_serializer=playlist__pb2.DeletePlaylistRequest.SerializeToString,
+                response_deserializer=playlist__pb2.MessageResponse.FromString,
+                _registered_method=True)
+        self.AddTrack = channel.unary_unary(
+                '/playlist.PlaylistService/AddTrack',
+                request_serializer=playlist__pb2.AddTrackRequest.SerializeToString,
+                response_deserializer=playlist__pb2.PlaylistResponse.FromString,
+                _registered_method=True)
+        self.RemoveTrack = channel.unary_unary(
+                '/playlist.PlaylistService/RemoveTrack',
+                request_serializer=playlist__pb2.RemoveTrackRequest.SerializeToString,
+                response_deserializer=playlist__pb2.PlaylistResponse.FromString,
+                _registered_method=True)
+        self.ListUserPlaylists = channel.unary_unary(
+                '/playlist.PlaylistService/ListUserPlaylists',
+                request_serializer=playlist__pb2.ListUserPlaylistsRequest.SerializeToString,
+                response_deserializer=playlist__pb2.ListUserPlaylistsResponse.FromString,
+                _registered_method=True)
 
 
 class PlaylistServiceServicer:
     """Missing associated documentation comment in .proto file."""
 
     def Ping(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreatePlaylist(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetPlaylist(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdatePlaylist(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeletePlaylist(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AddTrack(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveTrack(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListUserPlaylists(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +134,41 @@ def add_PlaylistServiceServicer_to_server(servicer, server):
                     servicer.Ping,
                     request_deserializer=playlist__pb2.PingRequest.FromString,
                     response_serializer=playlist__pb2.PingResponse.SerializeToString,
+            ),
+            'CreatePlaylist': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreatePlaylist,
+                    request_deserializer=playlist__pb2.CreatePlaylistRequest.FromString,
+                    response_serializer=playlist__pb2.PlaylistResponse.SerializeToString,
+            ),
+            'GetPlaylist': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPlaylist,
+                    request_deserializer=playlist__pb2.GetPlaylistRequest.FromString,
+                    response_serializer=playlist__pb2.PlaylistResponse.SerializeToString,
+            ),
+            'UpdatePlaylist': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdatePlaylist,
+                    request_deserializer=playlist__pb2.UpdatePlaylistRequest.FromString,
+                    response_serializer=playlist__pb2.PlaylistResponse.SerializeToString,
+            ),
+            'DeletePlaylist': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeletePlaylist,
+                    request_deserializer=playlist__pb2.DeletePlaylistRequest.FromString,
+                    response_serializer=playlist__pb2.MessageResponse.SerializeToString,
+            ),
+            'AddTrack': grpc.unary_unary_rpc_method_handler(
+                    servicer.AddTrack,
+                    request_deserializer=playlist__pb2.AddTrackRequest.FromString,
+                    response_serializer=playlist__pb2.PlaylistResponse.SerializeToString,
+            ),
+            'RemoveTrack': grpc.unary_unary_rpc_method_handler(
+                    servicer.RemoveTrack,
+                    request_deserializer=playlist__pb2.RemoveTrackRequest.FromString,
+                    response_serializer=playlist__pb2.PlaylistResponse.SerializeToString,
+            ),
+            'ListUserPlaylists': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListUserPlaylists,
+                    request_deserializer=playlist__pb2.ListUserPlaylistsRequest.FromString,
+                    response_serializer=playlist__pb2.ListUserPlaylistsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +198,195 @@ class PlaylistService:
             '/playlist.PlaylistService/Ping',
             playlist__pb2.PingRequest.SerializeToString,
             playlist__pb2.PingResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreatePlaylist(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/CreatePlaylist',
+            playlist__pb2.CreatePlaylistRequest.SerializeToString,
+            playlist__pb2.PlaylistResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPlaylist(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/GetPlaylist',
+            playlist__pb2.GetPlaylistRequest.SerializeToString,
+            playlist__pb2.PlaylistResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdatePlaylist(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/UpdatePlaylist',
+            playlist__pb2.UpdatePlaylistRequest.SerializeToString,
+            playlist__pb2.PlaylistResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeletePlaylist(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/DeletePlaylist',
+            playlist__pb2.DeletePlaylistRequest.SerializeToString,
+            playlist__pb2.MessageResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AddTrack(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/AddTrack',
+            playlist__pb2.AddTrackRequest.SerializeToString,
+            playlist__pb2.PlaylistResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveTrack(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/RemoveTrack',
+            playlist__pb2.RemoveTrackRequest.SerializeToString,
+            playlist__pb2.PlaylistResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListUserPlaylists(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/playlist.PlaylistService/ListUserPlaylists',
+            playlist__pb2.ListUserPlaylistsRequest.SerializeToString,
+            playlist__pb2.ListUserPlaylistsResponse.FromString,
             options,
             channel_credentials,
             insecure,
