@@ -239,9 +239,9 @@ def main():
 	print(f"\n  Результат: {passed}/{total} тестов пройдено")
 
 	if passed == total:
-		print("\n🎉 Все тесты пройдены успешно!")
+		print(" тесты пройдены успешно!")
 	else:
-		print(f"\n⚠️  {total - passed} тест(ов) не пройдено")
+		print(f"  {total - passed} тест(ов) не пройдено")
 
 	return 0 if passed == total else 1
 

@@ -27,10 +27,6 @@ cfg = GatewaySettings()
 
 
 def _to_asyncpg_url(url: str) -> str:
-	"""
-	Преобразует SQLAlchemy URL в формат для asyncpg.
-	postgresql+asyncpg://... → postgresql://...
-	"""
 	return url.replace("postgresql+asyncpg://", "postgresql://")
 
 
