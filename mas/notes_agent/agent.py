@@ -15,7 +15,7 @@ meter = get_meter(__name__)
 request_counter = meter.create_counter("notes_agent_requests")
 tool_latency = meter.create_histogram("notes_agent_tool_duration_seconds", unit="s")
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 
 
 MODEL_NAME = "qwen3.5:4b-q4_K_M"

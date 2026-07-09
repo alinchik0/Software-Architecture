@@ -11,8 +11,8 @@ tracer = get_tracer(__name__)  # Для событий, не для новых �
 # from notes_agent.agent import handle_request as notes_agent
 # from study_agent.agent import handle_request as study_agent
 
-NOTES_URL = os.getenv("NOTES_AGENT_URL", "http://localhost:8001")
-STUDY_URL = os.getenv("STUDY_AGENT_URL", "http://localhost:8002")
+NOTES_URL = os.getenv("NOTES_AGENT_URL", "http://127.0.0.1:8001")
+STUDY_URL = os.getenv("STUDY_AGENT_URL", "http://127.0.0.1:8002")
 
 
 def notes_node(state):
@@ -25,7 +25,7 @@ def notes_node(state):
         print("got here")
         span.set_attribute("target_service", NOTES_URL)
         try:
-            resp = requests.post(f"{NOTES_URL}/execute", json={"input": state["input"]}, timeout=30)
+            resp = requests.post(f"{NOTES_URL}/execute", json={"input": state["input"]}, timeout=300)
             resp.raise_for_status()
             return {"output": resp.json()["result"]}
         except Exception as e:

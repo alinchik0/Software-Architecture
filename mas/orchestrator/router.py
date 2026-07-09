@@ -7,7 +7,7 @@ from shared.observability import get_tracer
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
 
-OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 MODEL_NAME = "qwen3.5:4b-q4_K_M"
 
 
