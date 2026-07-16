@@ -210,19 +210,8 @@ def run_agent(user_input: str):
             logger.info("notes_agent_request", extra={"input_preview": user_input[:100]})
 
             # Базовый промпт из файла
-            base_prompt = open("notes_agent/prompts/system.md").read()
+            system_prompt = open("notes_agent/prompts/system.md").read()
 
-            # ДОБАВЛЯЕМ строгое требование к JSON-формату для вызова инструментов
-            system_prompt = base_prompt + """\n\n
-IMPORTANT: You must respond ONLY in valid JSON format. 
-If you need to use a tool, respond with: {"tool": "tool_name", "args": {"arg1": "value1"}}
-If no tool is needed, respond with: {"tool": null, "response": "your text answer"}
-
-Available tools:
-1. "add_note" with args: {"task": "string", "date_phrase": "string"}
-2. "get_notes" with args: {}
-3. "delete_note" with args: {"note_id": "string"}
-"""
 
             with tracer.start_as_current_span("notes_agent.llm_call") as llm_span:
                 llm_span.set_attribute("gen_ai.operation.name", "chat")

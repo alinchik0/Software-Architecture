@@ -1,16 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Multi-Agent Assistant</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAS Chat</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <h2>Multi-Agent Assistant</h2>
+    <div class="app-container">
+        <!-- Боковая панель -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <button class="new-chat-btn" onclick="createNewChat()">
+                    <span>+</span> Новый чат
+                </button>
+            </div>
+            <div class="sessions-list" id="sessionsList">
+                <!-- Список чатов загрузится через JS -->
+            </div>
+        </aside>
 
-    <div id="chat"></div>
+        <!-- Основная область чата -->
+        <main class="chat-area">
+            <div class="chat-header">
+                <h1>MAS Chat</h1>
+                <span class="current-session" id="currentSessionTitle">Новый диалог</span>
+            </div>
 
-    <input type="text" id="input" placeholder="Type message..." />
-    <button onclick="sendMessage()">Send</button>
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <h2>👋 Добро пожаловать!</h2>
+                    <p>Я помогу вам с управлением задачами и обучением.</p>
+                </div>
+            </div>
 
-    <script src="/static/app.js"></script>
+            <div class="input-area">
+                <form id="chatForm" onsubmit="sendMessage(event)">
+                    <textarea
+                        id="messageInput"
+                        placeholder="Введите сообщение..."
+                        rows="1"
+                        autocomplete="off"
+                    ></textarea>
+                    <button type="submit" id="sendBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
+                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
 </body>
 </html>

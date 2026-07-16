@@ -258,21 +258,8 @@ def run_agent(user_input: str):
         logger.info("study_agent_request", extra={"input_preview": user_input[:100]})
 
         try:
-            base_prompt = open("study_agent/prompts/system.md").read()
+            system_prompt = open("study_agent/prompts/system.md").read()
 
-            # ДОБАВЛЯЕМ строгое требование к JSON-формату
-            system_prompt = base_prompt + """\n\n
-IMPORTANT: You must respond ONLY in valid JSON format.
-If you need to use a tool, respond with: {"tool": "tool_name", "args": {"arg1": "value1"}}
-If no tool is needed, respond with: {"tool": null, "response": "your text answer"}
-
-Available tools:
-1. "add_material" with args: {"topic": "string", "content": "string"}
-2. "get_material" with args: {"topic": "string"}
-3. "search_material" with args: {"query": "string"}
-4. "delete_material" with args: {"topic": "string"}
-5. "answer_question" with args: {"query": "string"}
-"""
 
             with tracer.start_as_current_span("study_agent.llm_call") as llm_span:
                 llm_span.set_attribute("gen_ai.operation.name", "chat")

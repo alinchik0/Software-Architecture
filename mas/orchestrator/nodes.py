@@ -16,11 +16,6 @@ STUDY_URL = os.getenv("STUDY_AGENT_URL", "http://127.0.0.1:8002")
 
 
 def notes_node(state):
-    # with tracer.start_as_current_span("notes_agent_call") as span:
-    #     span.set_attribute("agent.type", "notes")
-    #     logger.info("notes_node_executed", extra={"input_preview": str(state["input"])[:100]})
-    #     result = notes_agent(state["input"])
-    #     return {"output": str(result)}
     with tracer.start_as_current_span("notes_node_http") as span:
         print("got here")
         span.set_attribute("target_service", NOTES_URL)
@@ -34,11 +29,6 @@ def notes_node(state):
 
 
 def study_node(state):
-    # with tracer.start_as_current_span("study_agent_call") as span:
-    #     span.set_attribute("agent.type", "study")
-    #     logger.info("study_node_executed", extra={"input_preview": str(state["input"])[:100]})
-    #     result = study_agent(state["input"])
-    #     return {"output": str(result)}
 
     with tracer.start_as_current_span("study_node_http") as span:
         print("got here")

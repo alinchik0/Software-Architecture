@@ -85,14 +85,7 @@ def route_request(user_message: str) -> str:
 	"""
 	try:
 		# Читаем базовый промпт
-		base_prompt = (PROMPTS_DIR / "router.md").read_text(encoding="utf-8")
-
-		# Усиливаем промпт требованием строгого JSON
-		system_prompt = base_prompt + """\n\n
-IMPORTANT: You must respond ONLY with a valid JSON object. 
-Do not add any explanations, markdown formatting, or extra text.
-Respond exactly like this: {"route": "notes"} OR {"route": "study"}
-"""
+		system_prompt = (PROMPTS_DIR / "router.md").read_text(encoding="utf-8")
 
 		logger.info("Routing request via LLM", extra={"input_preview": user_message[:50]})
 
