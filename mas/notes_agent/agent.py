@@ -1,71 +1,197 @@
-# notes_agent/agent.py
-import logging  # ← Стандартный модуль, ничего устанавливать не нужно
+# # notes_agent/agent.py
+# import logging  # ← Стандартный модуль, ничего устанавливать не нужно
+# import json
+# import time
+#
+# import requests
+# from notes_agent.tools import add_note, get_notes, delete_note
+# from shared.observability import get_tracer, get_meter
+# from shared.llm_client import call_llm, call_llm_json
+#
+#
+#
+# logger = logging.getLogger(__name__)
+# tracer = get_tracer(__name__)
+# meter = get_meter(__name__)
+#
+# # 📊 Метрики (объявляем один раз при импорте)
+# request_counter = meter.create_counter("notes_agent_requests")
+# tool_latency = meter.create_histogram("notes_agent_tool_duration_seconds", unit="s")
+#
+# OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
+#
+#
+# MODEL_NAME = "qwen3.5:4b-q4_K_M"
+#
+#
+# tools_schema = [
+#     {
+#         "type": "function",
+#         "function": {
+#             "name": "add_note",
+#             "description": "Add a new task",
+#             "parameters": {
+#                 "type": "object",
+#                 "properties": {
+#                     "task": {"type": "string"},
+#                     "date_phrase": {"type": "string"}
+#                 },
+#                 "required": ["task", "date_phrase"]
+#             }
+#         }
+#     },
+#     {
+#         "type": "function",
+#         "function": {
+#             "name": "get_notes",
+#             "description": "Get notes list",
+#             "parameters": {
+#                 "type": "object",
+#                 "properties": {
+#                     "start_date": {"type": "string"},
+#                     "end_date": {"type": "string"}
+#                 }
+#             }
+#         }
+#     },
+#     {
+#         "type": "function",
+#         "function": {
+#             "name": "delete_note",
+#             "description": "Delete a note",
+#             "parameters": {
+#                 "type": "object",
+#                 "properties": {
+#                     "note_id": {"type": "string"}
+#                 },
+#                 "required": ["note_id"]
+#             }
+#         }
+#     }
+# ]
+#
+#
+# def run_agent(user_input: str):
+#     try:
+#         with tracer.start_as_current_span("notes_agent.run") as span:
+#             start_time = time.time()
+#
+#             # 🏷️ Семантические атрибуты для LangFuse
+#             from shared.llm_client import HF_MODEL
+#             span.set_attributes({
+#                 "gen_ai.system": "huggingface",
+#                 "gen_ai.request.model": HF_MODEL,
+#                 "agent.type": "notes",
+#                 "input.preview": user_input[:100]
+#             })
+#
+#             request_counter.add(1, attributes={"operation": "request_received"})
+#             logger.info("notes_agent_request", extra={"input_preview": user_input[:100]})
+#
+#             system_prompt = open("notes_agent/prompts/system.md").read()
+#
+#             payload = {
+#                 "model": MODEL_NAME,
+#                 "messages": [
+#                     {"role": "system", "content": system_prompt},
+#                     {"role": "user", "content": user_input}
+#                 ],
+#                 "tools": tools_schema,
+#                 "stream": False
+#             }
+#
+#             # 🎯 Спан для внешнего LLM-вызова
+#             # 🎯 Спан для внешнего LLM-вызова
+#             with tracer.start_as_current_span("notes_agent.llm_call") as llm_span:
+#                 llm_span.set_attribute("gen_ai.operation.name", "chat")
+#                 from shared.llm_client import call_llm_with_tools
+#                 data = call_llm_with_tools(
+#                     system_prompt=system_prompt,
+#                     user_prompt=user_input,
+#                     tools=tools_schema,
+#                     temperature=0.1,
+#                     timeout=90
+#                 )
+#
+#                 has_tool_calls = (
+#                         "choices" in data
+#                         and data["choices"][0].get("message", {}).get("tool_calls") is not None
+#                 )
+#                 llm_span.add_event("llm_response", attributes={
+#                     "status_code": 200 if "error" not in data else 500,
+#                     "has_tool_calls": has_tool_calls
+#                 })
+#
+#             if "error" in data:
+#                 raise Exception(data["error"])
+#
+#             message = data["choices"][0]["message"]
+#             logger.debug("notes_agent_llm_raw", extra={"message_keys": list(message.keys())})
+#
+#             if "tool_calls" in message:
+#                 tool_call = message["tool_calls"][0]
+#                 name = tool_call["function"]["name"]
+#                 args = tool_call["function"]["arguments"]
+#                 if isinstance(args, str):
+#                     args = json.loads(args)
+#
+#                 logger.info("notes_agent_tool_called", extra={"tool_name": name, "tool_args": args})
+#
+#                 # 🎯 Замеряем время выполнения инструмента
+#                 tool_start = time.time()
+#                 try:
+#                     if name == "add_note":
+#                         result = add_note(**args)
+#                     elif name == "get_notes":
+#                         result = get_notes(**args)
+#                     elif name == "delete_note":
+#                         result = delete_note(**args)
+#                     else:
+#                         result = "Unknown tool"
+#
+#                     tool_latency.record(time.time() - tool_start, attributes={"tool": name, "status": "success"})
+#                     span.set_attributes({
+#                         "tool.name": name,
+#                         "tool.status": "success"
+#                     })
+#                     return result
+#
+#                 except Exception as tool_e:
+#                     tool_latency.record(time.time() - tool_start,
+#                                         attributes={"tool": name, "status": "error", "error": type(tool_e).__name__})
+#                     span.record_exception(tool_e)
+#                     span.set_attribute("tool.status", "error")
+#                     raise
+#
+#             # Если нет tool_calls — возвращаем прямой ответ
+#             span.set_attribute("llm.direct_response", True)
+#             return message.get("content", "")
+#
+#     except Exception as e:
+#         # 📉 Фиксируем общую задержку даже при ошибке
+#         tool_latency.record(time.time() - start_time, attributes={"operation": "run_agent", "error": type(e).__name__})
+#         logger.error("notes_agent_error", extra={"error": str(e), "input_preview": user_input[:100]})
+#         return f"Error: {str(e)}"
+#
+#
+# def handle_request(user_input: str) -> str:
+#     result = run_agent(user_input)
+#     return str(result)
+
+import logging
 import json
 import time
 
-import requests
 from notes_agent.tools import add_note, get_notes, delete_note
 from shared.observability import get_tracer, get_meter
+from shared.llm_client import call_llm_json, HF_MODEL
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
 meter = get_meter(__name__)
 
-# 📊 Метрики (объявляем один раз при импорте)
 request_counter = meter.create_counter("notes_agent_requests")
 tool_latency = meter.create_histogram("notes_agent_tool_duration_seconds", unit="s")
-
-OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
-
-
-MODEL_NAME = "qwen3.5:4b-q4_K_M"
-
-
-tools_schema = [
-    {
-        "type": "function",
-        "function": {
-            "name": "add_note",
-            "description": "Add a new task",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "task": {"type": "string"},
-                    "date_phrase": {"type": "string"}
-                },
-                "required": ["task", "date_phrase"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_notes",
-            "description": "Get notes list",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "start_date": {"type": "string"},
-                    "end_date": {"type": "string"}
-                }
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "delete_note",
-            "description": "Delete a note",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "note_id": {"type": "string"}
-                },
-                "required": ["note_id"]
-            }
-        }
-    }
-]
 
 
 def run_agent(user_input: str):
@@ -73,10 +199,9 @@ def run_agent(user_input: str):
         with tracer.start_as_current_span("notes_agent.run") as span:
             start_time = time.time()
 
-            # 🏷️ Семантические атрибуты для LangFuse
             span.set_attributes({
-                "gen_ai.system": "ollama",
-                "gen_ai.request.model": MODEL_NAME,
+                "gen_ai.system": "huggingface",
+                "gen_ai.request.model": HF_MODEL,
                 "agent.type": "notes",
                 "input.preview": user_input[:100]
             })
@@ -84,73 +209,72 @@ def run_agent(user_input: str):
             request_counter.add(1, attributes={"operation": "request_received"})
             logger.info("notes_agent_request", extra={"input_preview": user_input[:100]})
 
-            system_prompt = open("notes_agent/prompts/system.md").read()
+            # Базовый промпт из файла
+            base_prompt = open("notes_agent/prompts/system.md").read()
 
-            payload = {
-                "model": MODEL_NAME,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_input}
-                ],
-                "tools": tools_schema,
-                "stream": False
-            }
+            # ДОБАВЛЯЕМ строгое требование к JSON-формату для вызова инструментов
+            system_prompt = base_prompt + """\n\n
+IMPORTANT: You must respond ONLY in valid JSON format. 
+If you need to use a tool, respond with: {"tool": "tool_name", "args": {"arg1": "value1"}}
+If no tool is needed, respond with: {"tool": null, "response": "your text answer"}
 
-            # 🎯 Спан для внешнего LLM-вызова
+Available tools:
+1. "add_note" with args: {"task": "string", "date_phrase": "string"}
+2. "get_notes" with args: {}
+3. "delete_note" with args: {"note_id": "string"}
+"""
+
             with tracer.start_as_current_span("notes_agent.llm_call") as llm_span:
                 llm_span.set_attribute("gen_ai.operation.name", "chat")
-                response = requests.post(OLLAMA_URL, json=payload)
-                data = response.json()
+
+                # Используем call_llm_json вместо call_llm_with_tools
+                data = call_llm_json(
+                    system_prompt=system_prompt,
+                    user_prompt=user_input,
+                    timeout=90
+                )
 
                 llm_span.add_event("llm_response", attributes={
-                    "status_code": response.status_code,
-                    "has_tool_calls": "tool_calls" in data.get("message", {})
+                    "status_code": 200 if "error" not in data else 500,
+                    "has_tool": data.get("tool") is not None
                 })
 
-            message = data.get("message", {})
-            logger.debug("notes_agent_llm_raw", extra={"message_keys": list(message.keys())})
+            if "error" in data:
+                raise Exception(data["error"])
 
-            if "tool_calls" in message:
-                tool_call = message["tool_calls"][0]
-                name = tool_call["function"]["name"]
-                args = tool_call["function"]["arguments"]
-                if isinstance(args, str):
-                    args = json.loads(args)
+            tool_name = data.get("tool")
 
-                logger.info("notes_agent_tool_called", extra={"tool_name": name, "tool_args": args})
+            if tool_name:
+                args = data.get("args", {})
+                logger.info("notes_agent_tool_called", extra={"tool_name": tool_name, "tool_args": args})
 
-                # 🎯 Замеряем время выполнения инструмента
                 tool_start = time.time()
                 try:
-                    if name == "add_note":
+                    if tool_name == "add_note":
                         result = add_note(**args)
-                    elif name == "get_notes":
+                    elif tool_name == "get_notes":
                         result = get_notes(**args)
-                    elif name == "delete_note":
+                    elif tool_name == "delete_note":
                         result = delete_note(**args)
                     else:
-                        result = "Unknown tool"
+                        result = f"Unknown tool: {tool_name}"
 
-                    tool_latency.record(time.time() - tool_start, attributes={"tool": name, "status": "success"})
-                    span.set_attributes({
-                        "tool.name": name,
-                        "tool.status": "success"
-                    })
-                    return result
+                    tool_latency.record(time.time() - tool_start, attributes={"tool": tool_name, "status": "success"})
+                    span.set_attributes({"tool.name": tool_name, "tool.status": "success"})
+                    return str(result)
 
                 except Exception as tool_e:
-                    tool_latency.record(time.time() - tool_start,
-                                        attributes={"tool": name, "status": "error", "error": type(tool_e).__name__})
+                    tool_latency.record(time.time() - tool_start, attributes={"tool": tool_name, "status": "error",
+                                                                              "error": type(tool_e).__name__})
                     span.record_exception(tool_e)
                     span.set_attribute("tool.status", "error")
                     raise
-
-            # Если нет tool_calls — возвращаем прямой ответ
-            span.set_attribute("llm.direct_response", True)
-            return message.get("content", "")
+            else:
+                # Прямой ответ без инструмента
+                span.set_attribute("llm.direct_response", True)
+                return data.get("response", "No response provided")
 
     except Exception as e:
-        # 📉 Фиксируем общую задержку даже при ошибке
         tool_latency.record(time.time() - start_time, attributes={"operation": "run_agent", "error": type(e).__name__})
         logger.error("notes_agent_error", extra={"error": str(e), "input_preview": user_input[:100]})
         return f"Error: {str(e)}"

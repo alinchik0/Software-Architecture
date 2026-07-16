@@ -44,7 +44,7 @@ def study_node(state):
         print("got here")
         span.set_attribute("target_service", STUDY_URL)
         try:
-            resp = requests.post(f"{STUDY_URL}/execute", json={"input": state["input"]}, timeout=30)
+            resp = requests.post(f"{STUDY_URL}/execute", json={"input": state["input"]}, timeout=300)
             resp.raise_for_status()
             return {"output": resp.json()["result"]}
         except Exception as e:
