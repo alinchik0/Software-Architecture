@@ -1,82 +1,79 @@
 # shared/observability.py
-import logging
 import os
-from opentelemetry import trace, metrics
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
+import logging
+import atexit
+from opentelemetry import trace
 
+try:
+	from langfuse import Langfuse
+except ImportError:
+	Langfuse = None
+
+logger = logging.getLogger(__name__)
+
+langfuse_client = None
 _otel_initialized = False
-_meter_provider = None  # Глобальная ссылка для force_flush
 
 
 def setup_observability(service_name: str):
-    """Инициализировать OTel один раз для всего приложения."""
-    global _otel_initialized, _meter_provider
-    if _otel_initialized:
-        return
+	"""Инициализирует Langfuse (который под капотом настроит OpenTelemetry)."""
+	global langfuse_client, _otel_initialized
+	if _otel_initialized:
+		return
 
-    public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
-    secret_key = os.getenv("LANGFUSE_SECRET_KEY")
-    base_url = os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com").rstrip("/")
+	public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+	secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+	host = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com").rstrip("/")
 
-    # LangFuse OTLP endpoint: {base_url}/api/public/otel
-    endpoint = f"{base_url}/api/public/otel" if public_key and secret_key else None
+	if not public_key or not secret_key:
+		logger.warning("⚠️ [Observability] LANGFUSE_PUBLIC_KEY или LANGFUSE_SECRET_KEY не найдены в .env.")
+		return
 
-    # LangFuse auth header: Bearer {public_key}:{secret_key}
-    headers = {"Authorization": f"Bearer {public_key}:{secret_key}"} if public_key and secret_key else {}
+	if Langfuse is None:
+		logger.error("❌ [Observability] Библиотека 'langfuse' не установлена. Выполните: pip install langfuse")
+		return
 
-    if not endpoint or not headers:
-        print("⚠️ OTel env vars not set, skipping initialization")
-        return
+	try:
+		# Инициализируем родной клиент Langfuse.
+		# Теперь он корректно прочитает HTTP_PROXY / ALL_PROXY из системы
+		# и использует твой VPN благодаря установленному httpx[socks]
+		langfuse_client = Langfuse(
+			public_key=public_key,
+			secret_key=secret_key,
+			host=host,
+			release=service_name,
+			debug=True  # Поставь True, если хочешь видеть детальные логи отправки
+		)
 
-    resource = Resource.create({"service.name": service_name})
+		_otel_initialized = True
+		logger.info(f"✅ [Observability] Langfuse успешно инициализирован для '{service_name}' (через прокси).")
 
-    # ===== TRACES =====
-    trace_provider = TracerProvider(resource=resource)
-    trace.set_tracer_provider(trace_provider)
-    span_exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers, timeout=10)
-    trace_provider.add_span_processor(SimpleSpanProcessor(span_exporter))
-
-    # ===== METRICS =====
-    metric_exporter = OTLPMetricExporter(endpoint=endpoint, headers=headers, timeout=10)
-    reader = PeriodicExportingMetricReader(metric_exporter, export_interval_millis=10000)  # 10 сек для тестов
-    _meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
-    metrics.set_meter_provider(_meter_provider)
-
-    # ===== LOGS =====
-    logger_provider = LoggerProvider(resource=resource)
-    log_exporter = OTLPLogExporter(endpoint=endpoint, headers=headers, timeout=10)
-    logger_provider.add_log_record_processor(SimpleLogRecordProcessor(log_exporter))
-
-    otel_handler = LoggingHandler(logger_provider=logger_provider, level=logging.INFO)
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-    if not any(isinstance(h, LoggingHandler) for h in root_logger.handlers):
-        root_logger.addHandler(otel_handler)
-
-    _otel_initialized = True
-    print(f"✅ Observability initialized for {service_name}")
+	except Exception as e:
+		logger.error(f"❌ [Observability] Ошибка инициализации Langfuse: {e}")
 
 
 def get_tracer(name: str):
-    return trace.get_tracer(name)
+	"""Возвращает стандартный OpenTelemetry tracer (совместим с Langfuse)."""
+	return trace.get_tracer(name)
 
 
 def get_meter(name: str):
-    return metrics.get_meter(name)
+	"""Заглушка для метрик для совместимости с существующим кодом."""
+	from opentelemetry import metrics
+	return metrics.get_meter(name)
 
 
 def flush_observability():
-    """Принудительно отправить все накопленные данные (для CLI-скриптов)."""
-    if _otel_initialized:
-        trace.get_tracer_provider().force_flush()
-        if _meter_provider:
-            _meter_provider.force_flush()
+	"""Гарантированно отправляет все оставшиеся трейсы перед закрытием."""
+	global langfuse_client
+	if langfuse_client:
+		logger.info("🔄 [Observability] Отправка остаточных данных в Langfuse...")
+		try:
+			langfuse_client.flush()
+			logger.info("✅ [Observability] Отправка завершена.")
+		except Exception as e:
+			logger.error(f"❌ [Observability] Ошибка при отправке: {e}")
+
+
+# Автоматический flush при завершении работы Python
+atexit.register(flush_observability)
