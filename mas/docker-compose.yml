@@ -1,0 +1,46 @@
+services:
+  orchestrator:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+      - PYTHONUNBUFFERED=1  # Чтобы логи в Docker выводились сразу, а не буферизировались
+    volumes:
+      - agent_data:/root/.study_agent_data  # Сохраняем SQLite и ChromaDB между перезапусками
+    depends_on:
+      - notes_agent
+      - study_agent
+    command: uvicorn api.app:app --host 0.0.0.0 --port 8000
+
+  notes_agent:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - agent_data:/root/.study_agent_data
+    command: uvicorn notes_agent.api:app --host 0.0.0.0 --port 8001
+
+  study_agent:
+    build: .
+    ports:
+      - "8002:8002"
+    environment:
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - agent_data:/root/.study_agent_data
+    command: uvicorn study_agent.api:app --host 0.0.0.0 --port 8002
+
+# Именованный том для сохранения данных (память и векторная БД)
+volumes:
+  agent_data:

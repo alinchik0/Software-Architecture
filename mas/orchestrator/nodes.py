@@ -11,8 +11,12 @@ tracer = get_tracer(__name__)  # Для событий, не для новых �
 # from notes_agent.agent import handle_request as notes_agent
 # from study_agent.agent import handle_request as study_agent
 
-NOTES_URL = os.getenv("NOTES_AGENT_URL", "http://127.0.0.1:8001")
-STUDY_URL = os.getenv("STUDY_AGENT_URL", "http://127.0.0.1:8002")
+# NOTES_URL = os.getenv("NOTES_AGENT_URL", "http://127.0.0.1:8001")
+# STUDY_URL = os.getenv("STUDY_AGENT_URL", "http://127.0.0.1:8002")
+
+# Имена 'notes_agent' и 'study_agent' берутся из docker-compose.yml
+NOTES_URL = "http://notes_agent:8001"
+STUDY_URL = "http://study_agent:8002"
 
 
 def notes_node(state):

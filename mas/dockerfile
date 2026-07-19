@@ -1,0 +1,23 @@
+# Используем легкий и стабильный образ Python
+FROM python:3.11-slim
+
+# Устанавливаем системные зависимости (могут понадобиться для сборки некоторых пакетов)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Копируем зависимости и устанавливаем их
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Копируем весь код проекта
+COPY . .
+
+# Открываем порты для всех возможных сервисов
+EXPOSE 8000 8001 8002
+
+# Команда по умолчанию (будет переопределена в docker-compose.yml)
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
