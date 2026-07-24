@@ -92,3 +92,11 @@ def ping_user():
 @app.get("/ping/playlist")
 def ping_playlist():
 	return _grpc_ping(cfg.PLAYLIST_GRPC_URL, playlist_pb2_grpc.PlaylistServiceStub, playlist_pb2.PingRequest())
+
+
+
+from fastapi.staticfiles import StaticFiles
+import os
+
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/app", StaticFiles(directory=static_dir, html=True), name="static")

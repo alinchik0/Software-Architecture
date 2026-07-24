@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroMusic - Архитектурный проект</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Экран авторизации -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-box">
+            <h1>🎵 MicroMusic</h1>
+            <p>Демонстрация микросервисной архитектуры</p>
+            <form id="auth-form">
+                <input type="email" id="email" placeholder="Email" required value="test@test.com">
+                <input type="password" id="password" placeholder="Пароль" required value="password123">
+                <div class="auth-buttons">
+                    <button type="button" onclick="handleLogin()">Войти</button>
+                    <button type="button" class="secondary" onclick="handleRegister()">Регистрация</button>
+                </div>
+                <p id="auth-error" class="error"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основной экран приложения -->
+    <div id="app-screen" class="screen">
+        <aside class="sidebar">
+            <h2>🎵 MicroMusic</h2>
+            <nav>
+                <button class="nav-btn active" onclick="showView('library')">📚 Моя медиатека</button>
+                <button class="nav-btn" onclick="showView('create')">➕ Создать плейлист</button>
+            </nav>
+            <div class="user-info">
+                <p id="user-email">user@example.com</p>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Вид: Медиатека -->
+            <div id="view-library" class="view active">
+                <h2>Ваши плейлисты</h2>
+                <button class="action-btn" onclick="showView('create')">Создать новый</button>
+                <div id="playlists-container" class="grid-container">
+                    <!-- Сюда JS вставит плейлисты -->
+                    <p class="empty-state">Загрузка...</p>
+                </div>
+            </div>
+
+            <!-- Вид: Создание плейлиста -->
+            <div id="view-create" class="view">
+                <h2>Новый плейлист</h2>
+                <form id="create-playlist-form" class="form-box">
+                    <input type="text" id="pl-title" placeholder="Название плейлиста" required>
+                    <textarea id="pl-desc" placeholder="Описание" rows="3"></textarea>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="pl-public" checked> Публичный плейлист
+                    </label>
+                    <button type="submit">Создать и опубликовать (Kafka Event)</button>
+                </form>
+            </div>
+
+            <!-- Вид: Детали плейлиста -->
+            <div id="view-detail" class="view">
+                <button class="back-btn" onclick="showView('library')">← Назад к плейлистам</button>
+                <h2 id="detail-title">Название плейлиста</h2>
+                <p id="detail-desc">Описание</p>
+
+                <div class="add-track-box">
+                    <input type="text" id="track-url" placeholder="URL или ID трека (например, spotify:track:123)">
+                    <button onclick="addTrack()">Добавить трек</button>
+                </div>
+
+                <ul id="tracks-list" class="tracks-list">
+                    <!-- Треки будут здесь -->
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Плеер (декоративный, для полноты картины) -->
+    <footer class="player-bar">
+        <div class="player-info">
+            <span class="player-title">Выберите трек для воспроизведения</span>
+        </div>
+        <div class="player-controls">
+            <button>⏮</button>
+            <button class="play-btn">▶</button>
+            <button>⏭</button>
+        </div>
+        <div class="player-volume">🔊</div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
