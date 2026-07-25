@@ -1,6 +1,8 @@
 import logging
 import grpc
 from typing import Optional
+# Нужен для корректной обработки IntegrityError на уровне servicer
+from sqlalchemy.exc import IntegrityError
 
 from shared.database import async_session_factory
 from playlist_service_logic import (
@@ -174,5 +176,3 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
             return playlist_pb2.ListUserPlaylistsResponse(success=False, message=str(e))
 
 
-# Нужен для корректной обработки IntegrityError на уровне servicer
-from sqlalchemy.exc import IntegrityError

@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import catalog_pb2 as catalog__pb2
+from catalog_service import catalog_pb2 as catalog__pb2
 
 GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__

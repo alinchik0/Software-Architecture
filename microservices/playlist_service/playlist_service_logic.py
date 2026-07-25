@@ -7,13 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.models.playlist import Playlist, PlaylistTrack
 from shared.redis_cache import redis_client
-from spotify_client import SpotifyClient
+from playlist_service.catalog_client import catalog_client
 from kafka_producer import kafka_producer
 from config import PlaylistServiceSettings
 
 log = logging.getLogger("playlist-service.logic")
 cfg = PlaylistServiceSettings()
-spotify = SpotifyClient()
+
 
 
 class PermissionDenied(Exception):
@@ -38,7 +38,8 @@ async def _invalidate_cache(playlist_id: int) -> None:
 async def _playlist_to_dict(pl: Playlist, tracks: List[PlaylistTrack]) -> dict:
     tracks_data = []
     for t in tracks:
-        meta = await spotify.get_track_metadata(t.spotify_track_id)
+        # ТЕПЕРЬ МЫ ИСПОЛЬЗУЕМ catalog_client ЧЕРЕЗ gRPC
+        meta = await catalog_client.get_track_info(t.spotify_track_id)
         tracks_data.append({
             "spotify_track_id": t.spotify_track_id,
             "position": t.position,
