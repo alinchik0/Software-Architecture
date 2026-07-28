@@ -17,6 +17,7 @@ from config import GatewaySettings
 from api_gateway.routers import auth
 from shared.redis_cache import close as close_redis
 from api_gateway.routers.playlists import router as playlists_router, user_playlists_router
+from api_gateway.routers.catalog import router as catalog_router
 
 from user_service.protos.generated import user_pb2, user_pb2_grpc
 from playlist_service.protos.generated import playlist_pb2, playlist_pb2_grpc
@@ -65,6 +66,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(playlists_router)
 app.include_router(user_playlists_router)
+app.include_router(catalog_router)
 
 
 @app.get("/health")

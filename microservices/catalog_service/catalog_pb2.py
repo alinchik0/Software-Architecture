@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rcatalog.proto\x12\x07\x63\x61talog\"#\n\x0fGetTrackRequest\x12\x10\n\x08track_id\x18\x01 \x01(\t\"P\n\x05Track\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06\x61rtist\x18\x03 \x01(\t\x12\r\n\x05\x61lbum\x18\x04 \x01(\t\x12\r\n\x05genre\x18\x05 \x01(\t\"@\n\x10GetTrackResponse\x12\x1d\n\x05track\x18\x01 \x01(\x0b\x32\x0e.catalog.Track\x12\r\n\x05\x66ound\x18\x02 \x01(\x08\"3\n\x13SearchTracksRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12\r\n\x05limit\x18\x02 \x01(\x05\"6\n\x14SearchTracksResponse\x12\x1e\n\x06tracks\x18\x01 \x03(\x0b\x32\x0e.catalog.Track2\x9e\x01\n\x0e\x43\x61talogService\x12?\n\x08GetTrack\x12\x18.catalog.GetTrackRequest\x1a\x19.catalog.GetTrackResponse\x12K\n\x0cSearchTracks\x12\x1c.catalog.SearchTracksRequest\x1a\x1d.catalog.SearchTracksResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rcatalog.proto\x12\x07\x63\x61talog\"#\n\x0fGetTrackRequest\x12\x10\n\x08track_id\x18\x01 \x01(\t\"p\n\x05Track\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06\x61rtist\x18\x03 \x01(\t\x12\r\n\x05\x61lbum\x18\x04 \x01(\t\x12\r\n\x05genre\x18\x05 \x01(\t\x12\r\n\x05\x63over\x18\x06 \x01(\t\x12\x0f\n\x07preview\x18\x07 \x01(\t\"@\n\x10GetTrackResponse\x12\x1d\n\x05track\x18\x01 \x01(\x0b\x32\x0e.catalog.Track\x12\r\n\x05\x66ound\x18\x02 \x01(\x08\"3\n\x13SearchTracksRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12\r\n\x05limit\x18\x02 \x01(\x05\"6\n\x14SearchTracksResponse\x12\x1e\n\x06tracks\x18\x01 \x03(\x0b\x32\x0e.catalog.Track2\x9e\x01\n\x0e\x43\x61talogService\x12?\n\x08GetTrack\x12\x18.catalog.GetTrackRequest\x1a\x19.catalog.GetTrackResponse\x12K\n\x0cSearchTracks\x12\x1c.catalog.SearchTracksRequest\x1a\x1d.catalog.SearchTracksResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,13 +34,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETTRACKREQUEST']._serialized_start=26
   _globals['_GETTRACKREQUEST']._serialized_end=61
   _globals['_TRACK']._serialized_start=63
-  _globals['_TRACK']._serialized_end=143
-  _globals['_GETTRACKRESPONSE']._serialized_start=145
-  _globals['_GETTRACKRESPONSE']._serialized_end=209
-  _globals['_SEARCHTRACKSREQUEST']._serialized_start=211
-  _globals['_SEARCHTRACKSREQUEST']._serialized_end=262
-  _globals['_SEARCHTRACKSRESPONSE']._serialized_start=264
-  _globals['_SEARCHTRACKSRESPONSE']._serialized_end=318
-  _globals['_CATALOGSERVICE']._serialized_start=321
-  _globals['_CATALOGSERVICE']._serialized_end=479
+  _globals['_TRACK']._serialized_end=175
+  _globals['_GETTRACKRESPONSE']._serialized_start=177
+  _globals['_GETTRACKRESPONSE']._serialized_end=241
+  _globals['_SEARCHTRACKSREQUEST']._serialized_start=243
+  _globals['_SEARCHTRACKSREQUEST']._serialized_end=294
+  _globals['_SEARCHTRACKSRESPONSE']._serialized_start=296
+  _globals['_SEARCHTRACKSRESPONSE']._serialized_end=350
+  _globals['_CATALOGSERVICE']._serialized_start=353
+  _globals['_CATALOGSERVICE']._serialized_end=511
 # @@protoc_insertion_point(module_scope)

@@ -5,11 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94caf971-34ae-4815-aa2b-93bad4d342ac" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/api_gateway/static/js/api.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api_gateway/static/js/app.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api_gateway/static/js/config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api_gateway/static/js/player.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api_gateway/static/js/ui.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalog_service/catalog_pb2_grpc.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/catalog_pb2_grpc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api_gateway/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api_gateway/static/app.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/api_gateway/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/static/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api_gateway/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/static/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalog_service/catalog.proto" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/catalog.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalog_service/catalog_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/catalog_pb2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/catalog_service/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/grpc_playlist_servicer.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/grpc_playlist_servicer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/playlist_service_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/playlist_service_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalog_service/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/catalog_service/spotify_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/spotify_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playlist_service/catalog_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/catalog_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playlist_testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_testing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/testing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,14 +52,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/Lina/Desktop/Software-Architecture/sem2 project/mas"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Lina/Desktop/Software-Architecture/sem2 project/mas&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Lina\Desktop\Software-Architecture\microservices\user_service" />

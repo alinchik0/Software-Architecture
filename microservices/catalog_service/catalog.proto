@@ -17,6 +17,8 @@ message Track {
     string artist = 3;
     string album = 4;
     string genre = 5;
+    string cover = 6;      // URL обложки альбома
+    string preview = 7;    // URL 30-секундного MP3 превью
 }
 
 message GetTrackResponse {

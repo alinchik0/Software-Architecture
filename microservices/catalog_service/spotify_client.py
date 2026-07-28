@@ -1,85 +1,156 @@
+# # microservices/catalog_service/spotify_client.py
+#
+# import httpx
+# import logging
+#
+# logger = logging.getLogger(__name__)
+#
+#
+# class SpotifyClient:
+# 	"""
+# 	Клиент для Deezer API (бесплатный, без ключей).
+# 	Название класса оставлено для обратной совместимости с остальным кодом.
+# 	"""
+# 	BASE_URL = "https://api.deezer.com"
+#
+# 	def __init__(self):
+# 		# Deezer не требует аутентификации для базовых запросов
+# 		pass
+#
+# 	def _normalize_track(self, item: dict) -> dict:
+# 		"""Приводит ответ Deezer к единому формату"""
+# 		return {
+# 			"id": str(item["id"]),  # Deezer возвращает числовой ID, конвертируем в строку
+# 			"title": item.get("title", "Unknown"),
+# 			"artist": item["artist"]["name"] if item.get("artist") else "Unknown Artist",
+# 			"album": item["album"]["title"] if item.get("album") else "Unknown Album",
+# 			"genre": "Unknown",  # Deezer не отдает жанр в поиске напрямую
+# 			"cover": item["album"].get("cover_medium") if item.get("album") else None,
+# 			"preview": item.get("preview"),  # 30-секундное MP3 превью!
+# 		}
+#
+# 	async def get_track(self, track_id: str) -> dict | None:
+# 		"""Получить метаданные трека по ID"""
+# 		try:
+# 			async with httpx.AsyncClient(timeout=10.0) as client:
+# 				response = await client.get(f"{self.BASE_URL}/track/{track_id}")
+# 				if response.status_code == 404:
+# 					return None
+# 				if response.status_code != 200:
+# 					logger.error(f"Deezer Get Track Error {response.status_code}: {response.text}")
+# 					return None
+# 				return self._normalize_track(response.json())
+# 		except Exception as e:
+# 			logger.error(f"Error fetching track {track_id}: {e}")
+# 			return None
+#
+# 	async def search_tracks(self, query: str, limit: int = 10) -> list:
+# 		"""Поиск треков по названию или исполнителю"""
+# 		try:
+# 			async with httpx.AsyncClient(timeout=10.0) as client:
+# 				response = await client.get(
+# 					f"{self.BASE_URL}/search",
+# 					params={"q": query, "limit": min(limit, 50)}
+# 				)
+# 				if response.status_code != 200:
+# 					logger.error(f"Deezer Search Error {response.status_code}: {response.text}")
+# 					return []
+#
+# 				data = response.json()
+# 				items = data.get("data", [])
+# 				logger.info(f"Deezer search for '{query}': found {len(items)} tracks")
+# 				return [self._normalize_track(item) for item in items]
+# 		except Exception as e:
+# 			logger.error(f"Error searching tracks: {e}")
+# 			return []
+#
+#
+# # Глобальный экземпляр
+# spotify_client = SpotifyClient()
+
+# microservices/catalog_service/jamendo_client.py
+
 import httpx
-import base64
 import logging
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 
-class SpotifyClient:
+class JamendoClient:
+	BASE_URL = "https://api.jamendo.com/v3.0"
+
 	def __init__(self):
-		self.client_id = settings.SPOTIFY_CLIENT_ID
-		self.client_secret = settings.SPOTIFY_CLIENT_SECRET
-		self._access_token = None
-		self._token_expires_at = 0
+		self.client_id = settings.JAMENDO_CLIENT_ID
 
-	async def _ensure_token(self):
-		import time
-		if self._access_token and time.time() < self._token_expires_at:
-			return self._access_token
-
-		auth_str = f"{self.client_id}:{self.client_secret}"
-		b64_auth = base64.b64encode(auth_str.encode()).decode()
-
-		async with httpx.AsyncClient() as client:
-			response = await client.post(
-				"https://accounts.spotify.com/api/token",
-				headers={
-					"Authorization": f"Basic {b64_auth}",
-					"Content-Type": "application/x-www-form-urlencoded"
-				},
-				data={"grant_type": "client_credentials"}
-			)
-			response.raise_for_status()
-			data = response.json()
-			self._access_token = data["access_token"]
-			# Spotify возвращает время жизни в секундах, оставляем запас 60 сек
-			self._token_expires_at = time.time() + data["expires_in"] - 60
-			return self._access_token
+	def _normalize_track(self, item: dict) -> dict:
+		"""Приводит ответ Jamendo к единому формату, который ожидает наш gRPC"""
+		return {
+			"id": str(item["id"]),
+			"title": item.get("name", "Unknown"),
+			"artist": item.get("artist_name", "Unknown Artist"),
+			"album": item.get("album_name", "Unknown Album"),
+			# Jamendo иногда вкладывает жанр в musicinfo, но это не всегда гарантировано
+			"genre": item.get("musicinfo", {}).get("genre", "Unknown") if item.get("musicinfo") else "Unknown",
+			"cover": item.get("image", None),
+			# ВАЖНО: Jamendo отдает прямую ссылку на полный MP3 трек в поле 'audio'
+			"preview": item.get("audio", None)
+		}
 
 	async def get_track(self, track_id: str) -> dict | None:
-		token = await self._ensure_token()
-		async with httpx.AsyncClient() as client:
-			response = await client.get(
-				f"https://api.spotify.com/v1/tracks/{track_id}",
-				headers={"Authorization": f"Bearer {token}"}
-			)
-			if response.status_code == 404:
-				return None
-			response.raise_for_status()
-			data = response.json()
+		"""Получить метаданные трека по ID"""
+		try:
+			async with httpx.AsyncClient(timeout=10.0) as client:
+				response = await client.get(
+					f"{self.BASE_URL}/tracks/",
+					params={
+						"client_id": self.client_id,
+						"format": "json",
+						"id": track_id,
+						"audioformat": "mp32"  # mp32 = 320kbps, mp31 = 128kbps
+					}
+				)
+				if response.status_code != 200:
+					logger.error(f"Jamendo Get Track Error: {response.text}")
+					return None
 
-			# Примечание: Spotify API не возвращает жанр в объекте трека, только в объекте артиста.
-			# Для упрощения и скорости оставляем "Unknown" или базовый жанр.
-			return {
-				"id": data["id"],
-				"title": data["name"],
-				"artist": data["artists"][0]["name"] if data["artists"] else "Unknown Artist",
-				"album": data["album"]["name"],
-				"genre": "Unknown"
-			}
+				data = response.json()
+				results = data.get("results", [])
+				if not results:
+					return None
 
-	async def search_tracks(self, query: str, limit: int = 5) -> list:
-		token = await self._ensure_token()
-		async with httpx.AsyncClient() as client:
-			response = await client.get(
-				f"https://api.spotify.com/v1/search",
-				headers={"Authorization": f"Bearer {token}"},
-				params={"q": query, "type": "track", "limit": limit}
-			)
-			response.raise_for_status()
-			data = response.json()
+				return self._normalize_track(results[0])
+		except Exception as e:
+			logger.error(f"Error fetching track {track_id}: {e}")
+			return None
 
-			tracks = []
-			for item in data["tracks"]["items"]:
-				tracks.append({
-					"id": item["id"],
-					"title": item["name"],
-					"artist": item["artists"][0]["name"] if item["artists"] else "Unknown",
-					"album": item["album"]["name"],
-					"genre": "Unknown"
-				})
-			return tracks
+	async def search_tracks(self, query: str, limit: int = 10) -> list:
+		"""Поиск треков по названию или исполнителю"""
+		try:
+			async with httpx.AsyncClient(timeout=10.0) as client:
+				response = await client.get(
+					f"{self.BASE_URL}/tracks/",
+					params={
+						"client_id": self.client_id,
+						"format": "json",
+						"search": query,
+						"limit": limit,
+						"audioformat": "mp32"
+					}
+				)
+				if response.status_code != 200:
+					logger.error(f"Jamendo Search Error: {response.text}")
+					return []
+
+				data = response.json()
+				items = data.get("results", [])
+				logger.info(f"Jamendo search for '{query}': found {len(items)} tracks")
+
+				return [self._normalize_track(item) for item in items]
+		except Exception as e:
+			logger.error(f"Error searching tracks: {e}")
+			return []
 
 
-spotify_client = SpotifyClient()
+# Глобальный экземпляр
+spotify_client = JamendoClient()

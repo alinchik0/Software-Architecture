@@ -26,7 +26,9 @@ class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):
 				title=track_data["title"],
 				artist=track_data["artist"],
 				album=track_data["album"],
-				genre=track_data["genre"]
+				genre=track_data.get("genre", "Unknown"),
+				cover=track_data.get("cover") or "",
+				preview=track_data.get("preview") or ""
 			)
 		)
 
@@ -35,7 +37,8 @@ class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):
 		tracks = [
 			catalog_pb2.Track(
 				id=t["id"], title=t["title"], artist=t["artist"],
-				album=t["album"], genre=t["genre"]
+				album=t["album"], genre=t.get("genre", "Unknown"),
+				cover=t.get("cover") or "", preview=t.get("preview") or ""
 			) for t in tracks_data
 		]
 		return catalog_pb2.SearchTracksResponse(tracks=tracks)

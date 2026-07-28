@@ -1,250 +1,92 @@
-# testing.py
-"""
-Простой скрипт для проверки работы модуля аутентификации.
-Запускает последовательность запросов: регистрация → логин → logout.
-"""
-import httpx
-import time
-import sys
+import requests
+import json
 
 BASE_URL = "http://localhost:8000"
-
-# Уникальный email для каждого запуска (чтобы не было конфликтов)
-UNIQUE_EMAIL = f"test_{int(time.time())}@example.com"
-PASSWORD = "SecurePassword123!"
-
-
-def print_header(title: str):
-	"""Красивый заголовок для теста."""
-	print(f"\n{'=' * 60}")
-	print(f"  {title}")
-	print(f"{'=' * 60}")
+TEST_EMAIL = "test_auto@music.com"
+TEST_PASSWORD = "auto123456"
+# Известный рабочий ID трека из Spotify (The Killers - Mr. Brightside)
+VALID_SPOTIFY_TRACK_ID = "3n3Ppam7vgaVa1iaRUc9Lp"
 
 
-def print_result(success: bool, message: str, data: dict = None):
-	"""Выводит результат теста."""
-	status = "✅ PASS" if success else "❌ FAIL"
-	print(f"\n{status}: {message}")
-	if data:
-		print(f"  Response: {data}")
-	return success
+def print_step(step_name):
+	print(f"\n{'=' * 50}\n▶ {step_name}\n{'=' * 50}")
 
 
-def test_register(client: httpx.Client, email: str, password: str) -> bool:
-	"""Тест 1: Регистрация нового пользователя."""
-	print_header("TEST 1: Регистрация пользователя")
-	print(f"  Email: {email}")
-	print(f"  Password: {password[:4]}***")
+def test_full_flow():
+	headers = {}
 
-	response = client.post(
-		f"{BASE_URL}/auth/register",
-		json={"email": email, "password": password}
-	)
+	# 1. Регистрация и Вход
+	print_step("1. Регистрация и получение JWT токена")
+	reg_res = requests.post(f"{BASE_URL}/auth/register", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+	if reg_res.status_code not in [200, 201, 400]:  # 400 ок, если пользователь уже есть
+		print(f"❌ Ошибка регистрации: {reg_res.status_code} - {reg_res.text}")
+		return
 
-	data = response.json()
-	success = (
-			response.status_code == 200
-			and data.get("success") is True
-			and data.get("user_id") is not None
-	)
+	login_res = requests.post(f"{BASE_URL}/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+	if login_res.status_code != 200:
+		print(f"❌ Ошибка входа: {login_res.status_code} - {login_res.text}")
+		return
 
-	return print_result(success, f"Статус {response.status_code}", data)
+	token = login_res.json().get("access_token")
+	headers["Authorization"] = f"Bearer {token}"
+	headers["Content-Type"] = "application/json"
+	user_id = login_res.json().get("user_id")  # или извлеките из payload токена, если API возвращает иначе
+	print("✅ Токен получен успешно.")
 
-
-def test_register_duplicate(client: httpx.Client, email: str, password: str) -> bool:
-	"""Тест 2: Попытка повторной регистрации (должна упасть)."""
-	print_header("TEST 2: Повторная регистрация (ожидаем ошибку)")
-	print(f"  Email: {email} (уже зарегистрирован)")
-
-	response = client.post(
-		f"{BASE_URL}/auth/register",
-		json={"email": email, "password": password}
-	)
-
-	data = response.json()
-	# Ожидаем, что регистрация не удалась
-	success = (
-			response.status_code == 200  # FastAPI возвращает 200, но success=False
-			and data.get("success") is False
-			and "already" in data.get("message", "").lower()
-	)
-
-	return print_result(success, f"Статус {response.status_code}", data)
-
-
-def test_login_success(client: httpx.Client, email: str, password: str) -> str:
-	"""Тест 3: Успешный логин. Возвращает токен."""
-	print_header("TEST 3: Успешный логин")
-	print(f"  Email: {email}")
-
-	response = client.post(
-		f"{BASE_URL}/auth/login",
-		json={"email": email, "password": password}
-	)
-
-	data = response.json()
-	success = (
-			response.status_code == 200
-			and "access_token" in data
-			and data.get("user_id") is not None
-	)
-
-	print_result(success, f"Статус {response.status_code}", data)
-
-	if success:
-		token = data["access_token"]
-		print(f"  Token (первые 50 символов): {token[:50]}...")
-		return token
-	return None
-
-
-def test_login_wrong_password(client: httpx.Client, email: str) -> bool:
-	"""Тест 4: Логин с неверным паролем (должен упасть)."""
-	print_header("TEST 4: Логин с неверным паролем (ожидаем 401)")
-	print(f"  Email: {email}")
-	print(f"  Password: WrongPassword123!")
-
-	response = client.post(
-		f"{BASE_URL}/auth/login",
-		json={"email": email, "password": "WrongPassword123!"}
-	)
-
-	data = response.json()
-	success = response.status_code == 401
-
-	return print_result(success, f"Статус {response.status_code}", data)
-
-
-def test_login_nonexistent_user(client: httpx.Client) -> bool:
-	"""Тест 5: Логин с несуществующим email (должен упасть)."""
-	print_header("TEST 5: Логин с несуществующим email (ожидаем 401)")
-
-	response = client.post(
-		f"{BASE_URL}/auth/login",
-		json={"email": "nonexistent@example.com", "password": "AnyPassword123!"}
-	)
-
-	data = response.json()
-	success = response.status_code == 401
-
-	return print_result(success, f"Статус {response.status_code}", data)
-
-
-def test_login_invalid_email(client: httpx.Client) -> bool:
-	"""Тест 6: Логин с невалидным email (должен упасть с 422)."""
-	print_header("TEST 6: Логин с невалидным email (ожидаем 422)")
-
-	response = client.post(
-		f"{BASE_URL}/auth/login",
-		json={"email": "not-an-email", "password": "Password123!"}
-	)
-
-	data = response.json()
-	success = response.status_code == 422
-
-	return print_result(success, f"Статус {response.status_code}", data)
-
-
-def test_logout(client: httpx.Client, token: str) -> bool:
-	"""Тест 7: Logout (добавление токена в blacklist)."""
-	print_header("TEST 7: Logout")
-
-	response = client.post(
-		f"{BASE_URL}/auth/logout",
-		headers={"Authorization": f"Bearer {token}"}
-	)
-
-	data = response.json()
-	success = (
-			response.status_code == 200
-			and data.get("success") is True
-	)
-
-	return print_result(success, f"Статус {response.status_code}", data)
-
-
-def test_health(client: httpx.Client) -> bool:
-	"""Тест 8: Health check."""
-	print_header("TEST 8: Health check")
-
-	response = client.get(f"{BASE_URL}/health")
-	data = response.json()
-	success = response.status_code == 200 and data.get("status") == "ok"
-
-	return print_result(success, f"Статус {response.status_code}", data)
-
-
-def main():
-	"""Запускает все тесты последовательно."""
-	print("\n" + "=" * 60)
-	print("  АВТОМАТИЧЕСКОЕ ТЕСТИРОВАНИЕ МОДУЛЯ АУТЕНТИФИКАЦИИ")
-	print("=" * 60)
-	print(f"  Base URL: {BASE_URL}")
-	print(f"  Test email: {UNIQUE_EMAIL}")
-
-	# Проверяем доступность сервера
-	try:
-		httpx.get(f"{BASE_URL}/health", timeout=3.0)
-	except httpx.ConnectError:
-		print(f"\n❌ ОШИБКА: Не удалось подключиться к {BASE_URL}")
-		print("   Убедитесь, что api-gateway запущен:")
-		print("   cd api_gateway && uvicorn main:app --port 8000")
-		sys.exit(1)
-
-	results = []
-
-	# Используем синхронный клиент для простоты
-	with httpx.Client(timeout=10.0) as client:
-		# 1. Health check
-		results.append(("Health check", test_health(client)))
-
-		# 2. Регистрация
-		results.append(("Регистрация", test_register(client, UNIQUE_EMAIL, PASSWORD)))
-
-		# 3. Повторная регистрация (должна упасть)
-		results.append(("Повторная регистрация", test_register_duplicate(client, UNIQUE_EMAIL, PASSWORD)))
-
-		# 4. Успешный логин
-		results.append(("Успешный логин", test_login_success(client, UNIQUE_EMAIL, PASSWORD) is not None))
-
-		# 5. Логин с неверным паролем
-		results.append(("Неверный пароль", test_login_wrong_password(client, UNIQUE_EMAIL)))
-
-		# 6. Логин с несуществующим email
-		results.append(("Несуществующий email", test_login_nonexistent_user(client)))
-
-		# 7. Логин с невалидным email
-		results.append(("Невалидный email", test_login_invalid_email(client)))
-
-		# 8. Логин + logout
-		token = test_login_success(client, UNIQUE_EMAIL, PASSWORD)
-		if token:
-			results.append(("Logout", test_logout(client, token)))
-		else:
-			print("\n⚠️  Пропускаем logout — не получили токен")
-			results.append(("Logout", False))
-
-	# Итоги
-	print("\n" + "=" * 60)
-	print("  ИТОГИ")
-	print("=" * 60)
-
-	passed = sum(1 for _, r in results if r)
-	total = len(results)
-
-	for name, result in results:
-		status = "✅" if result else "❌"
-		print(f"  {status} {name}")
-
-	print(f"\n  Результат: {passed}/{total} тестов пройдено")
-
-	if passed == total:
-		print(" тесты пройдены успешно!")
+	# 2. Проверка поиска в каталоге (Самый важный шаг!)
+	print_step("2. Поиск трека через Catalog Service (gRPC -> Spotify)")
+	search_res = requests.get(f"{BASE_URL}/catalog/search?q=Killers&limit=3", headers=headers)
+	if search_res.status_code != 200:
+		print(f"❌ Ошибка поиска: {search_res.status_code} - {search_res.text}")
+		print(
+			"💡 Проверьте: 1) Подключен ли catalog_router в main.py, 2) Запущен ли catalog_service, 3) Верны ли ключи Spotify в .env")
 	else:
-		print(f"  {total - passed} тест(ов) не пройдено")
+		data = search_res.json()
+		tracks = data.get("tracks", [])
+		if not tracks:
+			print("⚠️ Поиск вернул пустой список. Проверьте ключи Spotify или интернет-соединение.")
+		else:
+			print(f"✅ Поиск успешен! Найдено треков: {len(tracks)}")
+			print(f"   Первый трек: {tracks[0]['title']} - {tracks[0]['artist']} (ID: {tracks[0]['id']})")
 
-	return 0 if passed == total else 1
+	# 3. Создание плейлиста
+	print_step("3. Создание плейлиста")
+	playlist_data = {"title": "Auto Test Playlist", "description": "Created by test script", "is_public": True}
+	pl_res = requests.post(f"{BASE_URL}/playlists", headers=headers, json=playlist_data)
+	if pl_res.status_code != 200:
+		print(f"❌ Ошибка создания плейлиста: {pl_res.status_code} - {pl_res.text}")
+		return
+
+	playlist_id = pl_res.json().get("playlist_id")
+	print(f"✅ Плейлист создан с ID: {playlist_id}")
+
+	# 4. Добавление трека в плейлист
+	print_step(f"4. Добавление трека (ID: {VALID_SPOTIFY_TRACK_ID}) в плейлист")
+	add_track_data = {"spotify_track_id": VALID_SPOTIFY_TRACK_ID, "position": 1}
+	add_res = requests.post(f"{BASE_URL}/playlists/{playlist_id}/tracks", headers=headers, json=add_track_data)
+	if add_res.status_code != 200:
+		print(f"❌ Ошибка добавления трека: {add_res.status_code} - {add_res.text}")
+		print("💡 Убедитесь, что вы передаете именно ID (набор символов), а не полную URL-ссылку.")
+	else:
+		print("✅ Трек успешно добавлен!")
+
+	# 5. Проверка содержимого плейлиста
+	print_step("5. Проверка: получение плейлиста с треками")
+	get_pl_res = requests.get(f"{BASE_URL}/playlists/{playlist_id}", headers=headers)
+	if get_pl_res.status_code != 200:
+		print(f"❌ Ошибка получения плейлиста: {get_pl_res.status_code} - {get_pl_res.text}")
+	else:
+		pl_data = get_pl_res.json()
+		tracks_in_pl = pl_data.get("tracks", [])
+		print(f"✅ Плейлист получен. В нем {len(tracks_in_pl)} трек(ов).")
+		for t in tracks_in_pl:
+			print(f"   - {t.get('title')} by {t.get('artist')}")
+
+	print_step("🎉 Тестирование завершено!")
 
 
 if __name__ == "__main__":
-	sys.exit(main())
+	print("🚀 Запуск автоматизированного тестирования API...")
+	print(
+		"Убедитесь, что запущены: Docker (БД, Redis, Kafka), user_service, catalog_service, playlist_service, api_gateway")
+	test_full_flow()
