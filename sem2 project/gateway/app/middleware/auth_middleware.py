@@ -4,7 +4,8 @@ from app.core.security import verify_token
 PUBLIC_PATHS = [
     "/",
     "/health",
-    "/auth",   # всё что начинается с /auth — без проверки
+    "/users/login",
+    "/users/register",
 ]
 
 
