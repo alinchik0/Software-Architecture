@@ -30,7 +30,7 @@ const UI = {
         content.innerHTML = html;
     },
 
-    renderSearchResults(tracks) {
+        renderSearchResults(tracks) {
         const content = document.getElementById('app-content');
         if (!tracks || tracks.length === 0) {
             content.innerHTML = '<h2>Поиск</h2><p>Ничего не найдено.</p>';
@@ -38,9 +38,10 @@ const UI = {
         }
 
         let html = '<h2>Результаты поиска</h2><div class="grid-container">';
-        tracks.forEach(track => {
+        tracks.forEach((track, index) => {
+            // При клике устанавливаем весь список треков как очередь и начинаем с выбранного
             html += `
-                <div class="track-card" onclick='Player.play(${JSON.stringify(track).replace(/'/g, "&#39;")})'>
+                <div class="track-card" onclick='App.playFromSearch(${index})'>
                     <div class="card-cover">
                         ${track.cover ? `<img src="${track.cover}" alt="cover">` : '🎵'}
                     </div>
@@ -51,6 +52,9 @@ const UI = {
         });
         html += '</div>';
         content.innerHTML = html;
+
+        // Сохраняем текущие результаты в глобальную переменную для плеера
+        this.currentSearchResults = tracks;
     },
 
     renderCreatePlaylist() {
@@ -62,5 +66,12 @@ const UI = {
                 <button type="submit" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Создать</button>
             </form>
         `;
-    }
+    },
+
+    playFromSearch(index) {
+        if (!this.currentSearchResults || !this.currentSearchResults[index]) return;
+
+        // Передаём весь массив треков и индекс выбранного в плеер
+        Player.setQueue(this.currentSearchResults, index);
+    },
 };

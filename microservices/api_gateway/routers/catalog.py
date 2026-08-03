@@ -33,7 +33,9 @@ async def search_tracks(q: str = Query(..., description="Search query"), limit: 
     """Поиск треков в каталоге Spotify"""
     client = CatalogGRPCClient()
     try:
-        response = client.search_tracks(q, limit)
+        request = catalog_pb2.SearchTracksRequest(query=q, limit=limit)
+        response = client.stub.SearchTracks(request)
+
         return {
             "tracks": [
                 {
@@ -41,7 +43,9 @@ async def search_tracks(q: str = Query(..., description="Search query"), limit: 
                     "title": track.title,
                     "artist": track.artist,
                     "album": track.album,
-                    "genre": track.genre
+                    "genre": track.genre,
+                    "cover": track.cover,  # <-- ДОБАВИЛИ ОБЛОЖКУ
+                    "preview": track.preview  # <-- ДОБАВИЛИ ССЫЛКУ НА АУДИО (ЭТО ГЛАВНОЕ!)
                 }
                 for track in response.tracks
             ]

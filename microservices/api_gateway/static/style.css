@@ -97,3 +97,45 @@ body { background-color: var(--bg-dark); color: var(--text-primary); height: 100
 
 /* Основной контент должен учитывать высоту плеера */
 .main-content { padding-bottom: 100px; }
+
+/* === Расширенный плеер (День 2) === */
+.player-bar {
+    height: 90px;
+    background: #181818;
+    border-top: 1px solid #282828;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.player-track-info { display: flex; align-items: center; gap: 15px; width: 25%; min-width: 200px; }
+.player-cover-img { width: 56px; height: 56px; border-radius: 4px; object-fit: cover; background: #333; }
+.player-title { font-weight: bold; font-size: 0.9rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.player-artist { font-size: 0.8rem; color: var(--text-secondary); }
+
+.player-controls-wrapper { display: flex; flex-direction: column; align-items: center; width: 50%; gap: 8px; }
+.player-buttons { display: flex; align-items: center; gap: 20px; }
+.control-btn { background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; transition: color 0.2s; }
+.control-btn:hover { color: var(--text-primary); }
+.control-btn.active { color: var(--accent); }
+.play-btn { background: var(--text-primary); color: black; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+.play-btn:hover { transform: scale(1.05); }
+
+.player-progress { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 600px; }
+.player-progress span { font-size: 0.75rem; color: var(--text-secondary); min-width: 35px; text-align: center; }
+.player-progress input[type="range"] { flex: 1; height: 4px; -webkit-appearance: none; background: #535353; border-radius: 2px; cursor: pointer; }
+.player-progress input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--text-primary); border-radius: 50%; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+.player-progress input[type="range"]:hover::-webkit-slider-thumb { opacity: 1; }
+
+.player-volume { display: flex; align-items: center; gap: 10px; width: 25%; justify-content: flex-end; min-width: 150px; }
+.player-volume input[type="range"] { width: 100px; height: 4px; -webkit-appearance: none; background: #535353; border-radius: 2px; cursor: pointer; }
+.player-volume input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--text-primary); border-radius: 50%; cursor: pointer; }
+
+/* Основной контент должен учитывать высоту плеера */
+.main-content { padding-bottom: 110px; }

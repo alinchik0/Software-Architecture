@@ -43,7 +43,7 @@
         <main id="app-content" class="main-content"></main>
     </div>
 
-    <!-- Глобальный плеер (всегда внизу) -->
+       <!-- Глобальный плеер (всегда внизу) -->
     <footer class="player-bar" id="player-bar" style="display: none;">
         <div class="player-track-info">
             <img id="player-cover" src="" alt="cover" class="player-cover-img">
@@ -52,10 +52,26 @@
                 <div id="player-artist" class="player-artist">-</div>
             </div>
         </div>
-        <div class="player-controls">
-            <button onclick="Player.togglePlay()" id="play-pause-btn" class="play-btn">▶</button>
+
+        <div class="player-controls-wrapper">
+            <div class="player-buttons">
+                <button onclick="Player.toggleShuffle()" id="shuffle-btn" class="control-btn" title="Перемешать">🔀</button>
+                <button onclick="Player.playPrev()" class="control-btn" title="Предыдущий">⏮</button>
+                <button onclick="Player.togglePlay()" id="play-pause-btn" class="play-btn" title="Воспроизвести/Пауза">▶</button>
+                <button onclick="Player.playNext()" class="control-btn" title="Следующий">⏭</button>
+                <button onclick="Player.toggleRepeat()" id="repeat-btn" class="control-btn" title="Повтор">🔁</button>
+            </div>
+            <div class="player-progress">
+                <span id="current-time">0:00</span>
+                <input type="range" id="progress-bar" min="0" max="100" value="0" step="0.1">
+                <span id="duration">0:00</span>
+            </div>
         </div>
-        <div class="player-volume">🔊</div>
+
+        <div class="player-volume">
+            <span>🔊</span>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.8">
+        </div>
     </footer>
 
     <!-- Контейнер для Toast-уведомлений -->
