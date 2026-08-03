@@ -50,3 +50,43 @@ async def search_tracks(q: str = Query(..., description="Search query"), limit: 
         return {"tracks": [], "error": f"gRPC error: {e.details()}"}
     finally:
         client.close()
+
+
+from fastapi import Response
+from fastapi.responses import StreamingResponse
+import httpx
+
+
+@router.get("/stream/{track_id}")
+async def stream_track(track_id: str):
+    """Проксирует аудио-поток с Jamendo через наш сервер (обходит CORS)"""
+    # Сначала получаем информацию о треке через gRPC
+    client = CatalogGRPCClient()
+    try:
+        request = catalog_pb2.GetTrackRequest(track_id=track_id)
+        response = client.stub.GetTrack(request)
+
+        if not response.found or not response.track.preview:
+            return Response(status_code=404, content="Track not found or no audio available")
+
+        audio_url = response.track.preview
+
+        # Скачиваем аудио с Jamendo и стримим клиенту
+        async with httpx.AsyncClient() as http_client:
+            async with http_client.stream("GET", audio_url) as resp:
+                if resp.status_code != 200:
+                    return Response(status_code=502, content="Failed to fetch audio from provider")
+
+                # Возвращаем поток с правильными заголовками
+                return StreamingResponse(
+                    resp.aiter_bytes(),
+                    media_type="audio/mpeg",
+                    headers={
+                        "Accept-Ranges": "bytes",
+                        "Cache-Control": "public, max-age=3600"
+                    }
+                )
+    except Exception as e:
+        return Response(status_code=500, content=f"Streaming error: {str(e)}")
+    finally:
+        client.close()
