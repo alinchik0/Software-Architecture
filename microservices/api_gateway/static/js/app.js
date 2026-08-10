@@ -84,15 +84,15 @@ const App = {
     },
 
     async loadLibrary() {
-        try {
-            // ВНИМАНИЕ: Убедитесь, что ваш бэкенд поддерживает этот эндпоинт.
-            // Если нет, замените на '/users/{id}/playlists'
-            const playlists = await API.request('/playlists');
-            UI.renderLibrary(playlists);
-        } catch (err) {
-            UI.showToast('Не удалось загрузить плейлисты', 'error');
-        }
-    },
+    try {
+        // ПРАВИЛЬНЫЙ эндпоинт: получаем плейлисты конкретного пользователя
+        const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
+        UI.renderLibrary(playlists);
+    } catch (err) {
+        UI.showToast('Не удалось загрузить плейлисты', 'error');
+        console.error(err);
+    }
+},
 
     renderSearchView() {
         document.getElementById('app-content').innerHTML = `

@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # ИНФРАСТРУКТУРА (Базы данных и брокеры)
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: music_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: music_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: music_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: music_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Важно: advertise для внутреннего общения в docker и для хоста
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  mongodb: # Готовимся к RecSys (Требование 6: NoSQL)
+    image: mongo:6
+    container_name: music_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # ==========================================
+  # МИКРОСЕРВИСЫ
+  # ==========================================
+  user_service:
+    build:
+      context: .
+      dockerfile: user_service/Dockerfile
+    container_name: music_user_service
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/music_db
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=your-very-secret-jwt-key-change-this-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "50051:50051"
+
+  catalog_service:
+    build:
+      context: .
+      dockerfile: catalog_service/Dockerfile
+    container_name: music_catalog_service
+    environment:
+      - JAMENDO_CLIENT_ID=${JAMENDO_CLIENT_ID} # Берется из вашего .env файла
+    ports:
+      - "50053:50053"
+
+  playlist_service:
+    build:
+      context: .
+      dockerfile: playlist_service/Dockerfile
+    container_name: music_playlist_service
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/music_db
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092 # Внутренний адрес Kafka в docker
+      - KAFKA_TOPIC=playlist_events
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+      - catalog_service
+    ports:
+      - "50052:50052"
+
+  api_gateway:
+    build:
+      context: .
+      dockerfile: api_gateway/Dockerfile
+    container_name: music_api_gateway
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/music_db
+      - REDIS_URL=redis://redis:6379
+      - USER_GRPC_URL=user_service:50051
+      - PLAYLIST_GRPC_URL=playlist_service:50052
+      - CATALOG_GRPC_URL=catalog_service:50053
+      - SECRET_KEY=your-very-secret-jwt-key-change-this-in-production
+    depends_on:
+      - user_service
+      - playlist_service
+      - catalog_service
+    ports:
+      - "8000:8000"
+
+volumes:
+  pg_data:
+  mongo_data:

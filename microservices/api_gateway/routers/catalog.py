@@ -17,8 +17,9 @@ cfg = GatewaySettings()
 
 class CatalogGRPCClient:
     def __init__(self):
-        # Порт 50053 - это порт catalog_service
-        self.channel = grpc.insecure_channel('localhost:50053')
+        # Берем адрес из конфига. В Docker это будет 'catalog_service:50053', локально - 'localhost:50053'
+        grpc_url = getattr(cfg, 'CATALOG_GRPC_URL', 'localhost:50053')
+        self.channel = grpc.insecure_channel(grpc_url)
         self.stub = catalog_pb2_grpc.CatalogServiceStub(self.channel)
 
     def search_tracks(self, query: str, limit: int = 10):
