@@ -53,8 +53,8 @@ const UI = {
         html += '</div>';
         content.innerHTML = html;
 
-        // Сохраняем текущие результаты в глобальную переменную для плеера
-        this.currentSearchResults = tracks;
+//        // Сохраняем текущие результаты в глобальную переменную для плеера
+//        this.currentSearchResults = tracks;
     },
 
     renderCreatePlaylist() {

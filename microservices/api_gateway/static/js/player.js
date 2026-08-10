@@ -1,59 +1,3 @@
-//const Player = {
-//    audio: new Audio(),
-//    currentTrack: null,
-//
-//    init() {
-//        this.audio.addEventListener('ended', () => {
-//            document.getElementById('play-pause-btn').textContent = '▶';
-//        });
-//    },
-//
-//    play(track) {
-//    if (!track || !track.id) {
-//        UI.showToast('Некорректный трек', 'error');
-//        return;
-//    }
-//
-//    this.currentTrack = track;
-//
-//    // ВАЖНО: Используем ТОЛЬКО наш прокси-эндпоинт, а НЕ track.preview!
-//    // track.preview содержит прямую ссылку на Jamendo, которую браузер заблокирует
-//    const streamUrl = `${API_BASE}/catalog/stream/${track.id}`;
-//
-//    console.log('Playing track:', track.title, 'via URL:', streamUrl);
-//
-//    this.audio.src = streamUrl;
-//    this.audio.load(); // Принудительно загружаем новый источник
-//
-//    const playPromise = this.audio.play();
-//
-//    if (playPromise !== undefined) {
-//        playPromise.then(() => {
-//            console.log('Playback started successfully');
-//            document.getElementById('player-title').textContent = track.title;
-//            document.getElementById('player-artist').textContent = track.artist;
-//            document.getElementById('player-cover').src = track.cover || 'https://via.placeholder.com/50?text=🎵';
-//            document.getElementById('play-pause-btn').textContent = '⏸';
-//            document.getElementById('player-bar').style.display = 'flex';
-//            UI.showToast(`Играет: ${track.title}`, 'success');
-//        }).catch(error => {
-//            console.error("Audio play failed:", error);
-//            UI.showToast('Ошибка воспроизведения: ' + error.message, 'error');
-//        });
-//    }
-//}
-//
-//    togglePlay() {
-//        if (this.audio.paused) {
-//            this.audio.play();
-//            document.getElementById('play-pause-btn').textContent = '⏸';
-//        } else {
-//            this.audio.pause();
-//            document.getElementById('play-pause-btn').textContent = '▶';
-//        }
-//    }
-//};
-
 const Player = {
     audio: new Audio(),
     queue: [],
@@ -105,8 +49,6 @@ const Player = {
 
     loadAndPlay(track) {
         const streamUrl = `${API_BASE}/catalog/stream/${track.id}`;
-        console.log('Loading track:', track.title, 'via:', streamUrl);
-
         this.audio.src = streamUrl;
         this.audio.load();
 
@@ -231,3 +173,4 @@ const Player = {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 };
+

@@ -108,11 +108,14 @@ const App = {
     async doSearch() {
         const query = document.getElementById('search-input').value;
         if (!query) return;
-
         document.getElementById('search-results-container').innerHTML = '<p>Поиск...</p>';
         try {
             const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=10`);
-            UI.renderSearchResults(data.tracks);
+
+            // <-- 2. ДОБАВИТЬ: сохраняем треки в App, прежде чем рисовать
+            this.currentSearchResults = data.tracks || [];
+
+            UI.renderSearchResults(this.currentSearchResults);
         } catch (err) {
             UI.showToast('Ошибка поиска', 'error');
         }
@@ -135,6 +138,14 @@ const App = {
         // Здесь будет логика открытия детальной страницы плейлиста (День 3)
         // Пока просто заглушка
         document.getElementById('app-content').innerHTML = `<h2>Плейлист #${id}</h2><p>Детальный просмотр будет реализован в День 3.</p><button onclick="App.navigate('library')" style="margin-top:20px; padding: 10px;">Назад</button>`;
+    },
+    playFromSearch(index) {
+        if (!this.currentSearchResults || !this.currentSearchResults[index]) {
+            UI.showToast('Ошибка: трек не найден', 'error');
+            return;
+        }
+        // Передаем весь массив и индекс в плеер
+        Player.setQueue(this.currentSearchResults, index);
     }
 };
 
