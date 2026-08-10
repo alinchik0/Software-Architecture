@@ -1,0 +1,21 @@
+replicaCount: 2
+
+image:
+  repository: your-dockerhub-username/catalog-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 50053
+
+env:
+  JAMENDO_CLIENT_ID: "your-jamendo-client-id"
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"

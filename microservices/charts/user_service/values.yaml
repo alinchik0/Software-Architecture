@@ -1,0 +1,23 @@
+replicaCount: 2
+
+image:
+  repository: your-dockerhub-username/user-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 50051
+
+env:
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/music_db"
+  REDIS_URL: "redis://redis:6379"
+  SECRET_KEY: "your-very-secret-jwt-key-change-this-in-production"
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"

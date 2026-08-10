@@ -1,0 +1,29 @@
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: postgres
+    database: music_db
+  primary:
+    persistence:
+      size: 1Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+
+kafka:
+  enabled: true
+  zookeeper:
+    enabled: true
+  listeners:
+    client:
+      protocol: PLAINTEXT
+
+mongodb:
+  enabled: true
+  auth:
+    enabled: false
+  persistence:
+    size: 1Gi

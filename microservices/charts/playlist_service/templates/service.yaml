@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: playlist-service
+  labels:
+    app: playlist-service
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+      appProtocol: grpc
+  selector:
+    app: playlist-service

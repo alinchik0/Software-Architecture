@@ -1,0 +1,33 @@
+replicaCount: 2
+
+image:
+  repository: your-dockerhub-username/api-gateway
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+env:
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/music_db"
+  REDIS_URL: "redis://redis:6379"
+  USER_GRPC_URL: "user-service:50051"
+  PLAYLIST_GRPC_URL: "playlist-service:50052"
+  CATALOG_GRPC_URL: "catalog-service:50053"
+  SECRET_KEY: "your-very-secret-jwt-key-change-this-in-production"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: music.local
+  annotations:
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"

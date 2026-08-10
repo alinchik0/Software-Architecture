@@ -5,8 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94caf971-34ae-4815-aa2b-93bad4d342ac" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/charts/api_gateway/Chart.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/api_gateway/templates/deployment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/api_gateway/templates/ingress.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/api_gateway/templates/service.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/api_gateway/values.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/infrastructure/Chart.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/infrastructure/templates/kafka.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/infrastructure/templates/mongodb.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/infrastructure/templates/postgres.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/infrastructure/templates/redis.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/infrastructure/values.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/playlist_service/Chart.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/playlist_service/templates/deployment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/playlist_service/templates/service.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/playlist_service/values.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/user_service/Chart.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/user_service/templates/deployment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/user_service/templates/service.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/charts/user_service/values.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_gateway/routers/catalog.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/routers/catalog.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
