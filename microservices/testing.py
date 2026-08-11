@@ -4,7 +4,6 @@ import json
 BASE_URL = "http://localhost:8000"
 TEST_EMAIL = "test_auto@music.com"
 TEST_PASSWORD = "auto123456"
-# Известный рабочий ID трека из Spotify (The Killers - Mr. Brightside)
 VALID_SPOTIFY_TRACK_ID = "3n3Ppam7vgaVa1iaRUc9Lp"
 
 
@@ -30,7 +29,6 @@ def test_full_flow():
 	token = login_res.json().get("access_token")
 	headers["Authorization"] = f"Bearer {token}"
 	headers["Content-Type"] = "application/json"
-	user_id = login_res.json().get("user_id")  # или извлеките из payload токена, если API возвращает иначе
 	print("✅ Токен получен успешно.")
 
 	# 2. Проверка поиска в каталоге (Самый важный шаг!)
