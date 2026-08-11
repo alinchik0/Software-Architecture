@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - master
-    # ВАЖНО: Запускать только при изменениях в папке microservices
     paths:
       - 'microservices/**'
 
@@ -21,16 +20,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Kaniko Build and Push
-        uses: gcr.io/kaniko-project/executor@v1.23.2
+        # ИСПРАВЛЕНО: Используем официальную обёртку для Kaniko
+        uses: int128/kaniko-action@v1
         with:
-          # Dockerfile лежит внутри microservices/<service>/Dockerfile
+          push: true
+          cache: false
+          # Пути относительно корня репозитория
           dockerfile: microservices/${{ matrix.service }}/Dockerfile
-          # Контекст сборки — папка microservices (чтобы работали COPY shared/ и т.д.)
           context: microservices/
           destination: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          cache: false
 
   update-helm-charts:
     needs: build-and-push
@@ -45,7 +45,7 @@ jobs:
         run: |
           NEW_TAG="${{ github.sha }}"
           
-          # Пути к values.yaml теперь внутри microservices/charts/
+          # Обновляем значения в values.yaml для каждого сервиса
           sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api-gateway|g" microservices/charts/api-gateway/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/api-gateway/values.yaml
 
