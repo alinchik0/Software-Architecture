@@ -17,7 +17,7 @@ def test_full_flow():
 	# 1. Регистрация и Вход
 	print_step("1. Регистрация и получение JWT токена")
 	reg_res = requests.post(f"{BASE_URL}/auth/register", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
-	if reg_res.status_code not in [200, 201, 400]:  # 400 ок, если пользователь уже есть
+	if reg_res.status_code not in [200, 201, 400]:
 		print(f"❌ Ошибка регистрации: {reg_res.status_code} - {reg_res.text}")
 		return
 
@@ -68,7 +68,7 @@ def test_full_flow():
 	else:
 		print("✅ Трек успешно добавлен!")
 
-	# 5. Проверка содержимого плейлиста
+
 	print_step("5. Проверка: получение плейлиста с треками")
 	get_pl_res = requests.get(f"{BASE_URL}/playlists/{playlist_id}", headers=headers)
 	if get_pl_res.status_code != 200:
