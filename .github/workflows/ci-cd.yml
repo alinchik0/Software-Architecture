@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, user-service, playlist-service, catalog-service]
+        service: [api_gateway, user_service, playlist_service, catalog_service]
 
     steps:
       - name: Checkout code
@@ -30,8 +30,7 @@ jobs:
         with:
           push: true
           cache: false
-          # Правильные имена параметров:
-          file: microservices/${{ matrix.service }}/Dockerfile
+          file: ${{ matrix.service }}/Dockerfile
           context: microservices/
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
 
@@ -48,16 +47,16 @@ jobs:
         run: |
           NEW_TAG="${{ github.sha }}"
           
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api-gateway|g" microservices/charts/api-gateway/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api_gateway|g" microservices/charts/api-gateway/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/api-gateway/values.yaml
 
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/user-service|g" microservices/charts/user-service/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/user_service|g" microservices/charts/user-service/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/user-service/values.yaml
 
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/playlist-service|g" microservices/charts/playlist-service/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/playlist_service|g" microservices/charts/playlist-service/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/playlist-service/values.yaml
 
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/catalog-service|g" microservices/charts/catalog-service/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/catalog_service|g" microservices/charts/catalog-service/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/catalog-service/values.yaml
 
       - name: Commit and push updated charts
