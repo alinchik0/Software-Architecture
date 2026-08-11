@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # Имена точно совпадают с вашим выводом ls (с подчёркиванием)
         service: [api_gateway, user_service, playlist_service, catalog_service]
 
     steps:
@@ -26,13 +27,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Kaniko Build and Push
-        uses: int128/kaniko-action@v1
-        with:
-          push: true
-          cache: false
-          file: ${{ matrix.service }}/Dockerfile
-          context: microservices/
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
+        run: |
+          # Прямой вызов Kaniko с абсолютными путями. Это исключает любые ошибки с "../"
+          docker run --rm \
+            -v ${{ github.workspace }}/microservices:/workspace \
+            -v $HOME/.docker/config.json:/kaniko/.docker/config.json:ro \
+            gcr.io/kaniko-project/executor:v1.23.2 \
+            --dockerfile /workspace/${{ matrix.service }}/Dockerfile \
+            --context dir:///workspace/ \
+            --destination ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
 
   update-helm-charts:
     needs: build-and-push
@@ -46,18 +49,22 @@ jobs:
       - name: Update image tags in Helm charts
         run: |
           NEW_TAG="${{ github.sha }}"
+          CHART_DIR="microservices/charts"
           
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api_gateway|g" microservices/charts/api-gateway/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/api-gateway/values.yaml
+          # ВАЖНО: Если вы создали папки чартов с подчёркиванием (api_gateway), 
+          # замените "api-gateway" на "api_gateway" в путях ниже.
+          
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api_gateway|g" $CHART_DIR/api_gateway/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/api-gateway/values.yaml
 
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/user_service|g" microservices/charts/user-service/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/user-service/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/user_service|g" $CHART_DIR/user_service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/user_service/values.yaml
 
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/playlist_service|g" microservices/charts/playlist-service/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/playlist-service/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/playlist_service|g" $CHART_DIR/playlist_service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/playlist-service/values.yaml
 
-          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/catalog_service|g" microservices/charts/catalog-service/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/catalog-service/values.yaml
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/catalog_service|g" $CHART_DIR/catalog_service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/catalog_service/values.yaml
 
       - name: Commit and push updated charts
         run: |
