@@ -51,17 +51,16 @@ jobs:
           NEW_TAG="${{ github.sha }}"
           CHART_DIR="microservices/charts"
           
-          # ВАЖНО: Если вы создали папки чартов с подчёркиванием (api_gateway), 
-          # замените "api-gateway" на "api_gateway" в путях ниже.
+      
           
           sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api_gateway|g" $CHART_DIR/api_gateway/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/api-gateway/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/api_gateway/values.yaml
 
           sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/user_service|g" $CHART_DIR/user_service/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/user_service/values.yaml
 
           sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/playlist_service|g" $CHART_DIR/playlist_service/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/playlist-service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/playlist_service/values.yaml
 
           sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/catalog_service|g" $CHART_DIR/catalog_service/values.yaml
           sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" $CHART_DIR/catalog_service/values.yaml
