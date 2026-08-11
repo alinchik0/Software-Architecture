@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: your-dockerhub-username/api-gateway
+  repository: sigmawoman/api-gateway
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -15,7 +15,7 @@ env:
   USER_GRPC_URL: "user-service:50051"
   PLAYLIST_GRPC_URL: "playlist-service:50052"
   CATALOG_GRPC_URL: "catalog-service:50053"
-  SECRET_KEY: "your-very-secret-jwt-key-change-this-in-production"
+  SECRET_KEY: "K9mP2qR5vT8wY3nB6cF1jH4sL0zA7xX"
 
 ingress:
   enabled: true

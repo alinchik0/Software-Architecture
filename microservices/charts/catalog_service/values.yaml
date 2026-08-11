@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: your-dockerhub-username/catalog-service
+  repository: sigmawoman/catalog-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -10,7 +10,7 @@ service:
   port: 50053
 
 env:
-  JAMENDO_CLIENT_ID: "your-jamendo-client-id"
+  JAMENDO_CLIENT_ID: "b5ff5594"
 
 resources:
   requests:

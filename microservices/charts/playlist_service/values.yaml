@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: your-dockerhub-username/playlist-service
+  repository: sigmawoman/playlist-service
   pullPolicy: IfNotPresent
   tag: "latest"
 

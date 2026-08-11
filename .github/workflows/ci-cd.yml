@@ -1,0 +1,72 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    # ВАЖНО: Запускать только при изменениях в папке microservices
+    paths:
+      - 'microservices/**'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, user-service, playlist-service, catalog-service]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Kaniko Build and Push
+        uses: gcr.io/kaniko-project/executor@v1.23.2
+        with:
+          # Dockerfile лежит внутри microservices/<service>/Dockerfile
+          dockerfile: microservices/${{ matrix.service }}/Dockerfile
+          # Контекст сборки — папка microservices (чтобы работали COPY shared/ и т.д.)
+          context: microservices/
+          destination: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          cache: false
+
+  update-helm-charts:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update image tags in Helm charts
+        run: |
+          NEW_TAG="${{ github.sha }}"
+          
+          # Пути к values.yaml теперь внутри microservices/charts/
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/api-gateway|g" microservices/charts/api-gateway/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/api-gateway/values.yaml
+
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/user-service|g" microservices/charts/user-service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/user-service/values.yaml
+
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/playlist-service|g" microservices/charts/playlist-service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/playlist-service/values.yaml
+
+          sed -i "s|repository: .*|repository: ${{ secrets.DOCKER_USERNAME }}/catalog-service|g" microservices/charts/catalog-service/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"$NEW_TAG\"|g" microservices/charts/catalog-service/values.yaml
+
+      - name: Commit and push updated charts
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add microservices/charts/*/values.yaml
+            git commit -m "chore: update helm chart image tags to $NEW_TAG"
+            git push
+          fi

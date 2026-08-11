@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: your-dockerhub-username/user-service
+  repository: sigmawoman/user-service
   pullPolicy: IfNotPresent
   tag: "latest"
 
@@ -12,7 +12,7 @@ service:
 env:
   DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/music_db"
   REDIS_URL: "redis://redis:6379"
-  SECRET_KEY: "your-very-secret-jwt-key-change-this-in-production"
+  SECRET_KEY: "K9mP2qR5vT8wY3nB6cF1jH4sL0zA7xX"
 
 resources:
   requests:
