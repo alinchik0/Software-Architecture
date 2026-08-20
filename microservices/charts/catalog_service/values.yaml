@@ -1,9 +1,9 @@
 replicaCount: 2
 
 image:
-  repository: sigmawoman/catalog-service
+  repository: sigmawoman/catalog_service
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "e53efc859925338811f72cf969154fe0ad224ef3"
 
 service:
   type: ClusterIP
