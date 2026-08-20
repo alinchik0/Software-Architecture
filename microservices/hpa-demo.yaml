@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-demo
+  labels:
+    app: api-gateway-demo
+spec:
+  replicas: 1 # Начальное количество подов
+  selector:
+    matchLabels:
+      app: api-gateway-demo
+  template:
+    metadata:
+      labels:
+        app: api-gateway-demo
+    spec:
+      containers:
+      - name: api-gateway
+        image: nginx:alpine # Заглушка для демонстрации
+        ports:
+        - containerPort: 80
+        # ВАЖНО: Без этого блока HPA работать не будет!
+        resources:
+          requests:
+            cpu: 50m      # Запрашиваем 50 миллиядер (0.05 ядра)
+            memory: 64Mi
+          limits:
+            cpu: 200m     # Максимум 200 миллиядер
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-demo-svc
+spec:
+  selector:
+    app: api-gateway-demo
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

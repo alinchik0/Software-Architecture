@@ -20,6 +20,14 @@ kafka:
   listeners:
     client:
       protocol: PLAINTEXT
+  # Добавляем переменные окружения, которые строго требует образ Confluent Kafka
+  env:
+    - name: KAFKA_ADVERTISED_LISTENERS
+      value: "PLAINTEXT://kafka:9092"
+    - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+      value: "1"
+    - name: KAFKA_ZOOKEEPER_CONNECT
+      value: "zookeeper:2181"
 
 mongodb:
   enabled: true
