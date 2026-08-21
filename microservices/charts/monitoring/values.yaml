@@ -1,0 +1,32 @@
+# --- Настройки для Prometheus Stack (включает Grafana) ---
+prometheus:
+  grafana:
+    # Задаем простой пароль для локальной разработки, чтобы не мучиться с секретами
+    adminPassword: "admin"
+    # Автоматически добавляем Loki как источник данных (GitOps way)
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://loki-loki-stack:3100
+        access: proxy
+        isDefault: false
+        jsonData:
+          maxLines: 1000
+    # Включаем стандартные дашборды Kubernetes
+    defaultDashboardsEnabled: true
+
+# --- Настройки для Loki Stack ---
+loki:
+  loki:
+    enabled: true
+    config:
+      auth_enabled: false # Отключаем аутентификацию для локального стенда
+      ingester:
+        chunk_idle_period: 3m
+        chunk_block_size: 262144
+        chunk_retain_period: 1m
+  promtail:
+    enabled: true
+    config:
+      clients:
+        - url: http://loki-loki-stack:3100/loki/api/v1/push

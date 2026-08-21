@@ -6,8 +6,9 @@ image:
   tag: "4cd1a65a2301a2fd977e4f4651be6faacbb9ddec"
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 8000
+  targetPort: 8000
 
 env:
   DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/music_db"
