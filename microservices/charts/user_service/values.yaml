@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: sigmawoman/user_service
   pullPolicy: IfNotPresent
-  tag: "4cd1a65a2301a2fd977e4f4651be6faacbb9ddec"
+  tag: "b7f9c0ac2a3da985bb1470b4b81cc2c22c5c02ff"
 
 service:
   type: ClusterIP
