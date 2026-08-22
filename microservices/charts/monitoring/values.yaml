@@ -5,11 +5,11 @@ prometheus:
     additionalDataSources:
       - name: Loki
         type: loki
+        uid: loki
         url: http://microservices-monitoring-loki:3100
         access: proxy
         isDefault: false
-        jsonData:
-          maxLines: 1000
+        editable: false
 
 
 loki:
@@ -26,6 +26,25 @@ loki:
     config:
       clients:
         - url: http://microservices-monitoring-loki:3100/loki/api/v1/push
+          scrape_configs:
+            - job_name: kubernetes-pods
+              pipeline_stages:
+                - cri: { }
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                # Берем метку 'app' из labels пода и делаем её меткой Loki
+                - source_labels:
+                    - __meta_kubernetes_pod_label_app
+                  target_label: app
+                # Берем имя контейнера
+                - source_labels:
+                    - __meta_kubernetes_pod_container_name
+                  target_label: container
+                # Берем namespace
+                - source_labels:
+                    - __meta_kubernetes_namespace
+                  target_label: namespace
 
 
   grafana:
