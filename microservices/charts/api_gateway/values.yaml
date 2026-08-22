@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: sigmawoman/api_gateway
   pullPolicy: IfNotPresent
-  tag: "9c1ecd7bb80aa983c7b3f5005f9e8257936e2194"
+  tag: "322a46ff5b3d2884fa6a651ec74ffa6f25c553d4"
 
 service:
   type: LoadBalancer
