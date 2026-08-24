@@ -1,0 +1,36 @@
+# infrastructure/ingress/ingress-ratelimit.yaml
+---
+# 1. Middleware для ограничения частоты запросов (Rate Limiting)
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-middleware
+  namespace: default
+spec:
+  rateLimit:
+    average: 10      # Среднее количество запросов в секунду
+    burst: 20        # Допустимый пиковый всплеск
+---
+# 2. Ingress ресурс, направляющий трафик и применяющий Middleware
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: micromusic-ingress
+  namespace: default
+  annotations:
+    # Привязываем Middleware к этому Ingress
+    traefik.ingress.kubernetes.io/router.middlewares: default-rate-limit-middleware@kubernetescrd
+spec:
+  rules:
+  # Чтобы это работало локально, добавьте в C:\Windows\System32\drivers\etc\hosts строку:
+  # 127.0.0.1 micromusic.local
+  - host: micromusic.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 8000

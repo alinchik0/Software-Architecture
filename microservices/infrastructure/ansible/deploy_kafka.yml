@@ -1,0 +1,25 @@
+# infrastructure/ansible/deploy_kafka.yml
+---
+- name: Deploy Kafka Infrastructure via Helm
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Ensure kubernetes.core collection is installed
+      ansible.builtin.command: ansible-galaxy collection install kubernetes.core
+      changed_when: false
+
+    - name: Deploy Kafka using the existing infrastructure Helm chart
+      kubernetes.core.helm:
+        name: kafka-release
+        # Путь к вашему существующему чарту относительно папки ansible
+        chart_ref: ../../charts/infrastructure
+        release_namespace: default
+        values:
+          kafka:
+            enabled: true
+          zookeeper:
+            enabled: true
+        state: present
+        wait: true

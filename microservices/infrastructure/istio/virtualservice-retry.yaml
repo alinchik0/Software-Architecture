@@ -1,0 +1,20 @@
+# infrastructure/istio/virtualservice-retry.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-gateway-retry-policy
+  namespace: default
+spec:
+  hosts:
+  - api-gateway
+  http:
+  - route:
+    - destination:
+        host: api-gateway
+        port:
+          number: 8000
+    # Требование: Retry policies
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+      retryOn: 5xx,reset,connect-failure,retriable-4xx
