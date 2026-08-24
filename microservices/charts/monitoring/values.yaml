@@ -13,38 +13,32 @@ prometheus:
 
 
 loki:
-  loki:
-    enabled: true
-    config:
-      auth_enabled: false
-      ingester:
-        chunk_idle_period: 3m
-        chunk_block_size: 262144
-        chunk_retain_period: 1m
   promtail:
     enabled: true
     config:
       clients:
         - url: http://microservices-monitoring-loki:3100/loki/api/v1/push
-          scrape_configs:
-            - job_name: kubernetes-pods
-              pipeline_stages:
-                - cri: { }
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                # Берем метку 'app' из labels пода и делаем её меткой Loki
-                - source_labels:
-                    - __meta_kubernetes_pod_label_app
-                  target_label: app
-                # Берем имя контейнера
-                - source_labels:
-                    - __meta_kubernetes_pod_container_name
-                  target_label: container
-                # Берем namespace
-                - source_labels:
-                    - __meta_kubernetes_namespace
-                  target_label: namespace
+
+      # 👇 ВАЖНО: Настраиваем сбор логов со всех подов в кластере
+      scrape_configs:
+        - job_name: kubernetes-pods
+          pipeline_stages:
+            - cri: {}
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            # Берем метку 'app' из labels пода и делаем её меткой Loki
+            - source_labels:
+                - __meta_kubernetes_pod_label_app
+              target_label: app
+            # Берем имя контейнера
+            - source_labels:
+                - __meta_kubernetes_pod_container_name
+              target_label: container
+            # Берем namespace
+            - source_labels:
+                - __meta_kubernetes_namespace
+              target_label: namespace
 
 
   grafana:
