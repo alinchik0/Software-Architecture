@@ -81,7 +81,7 @@ const UI = {
 
 //        // Сохраняем текущие результаты в глобальную переменную для плеера
 //        this.currentSearchResults = tracks;
-    },
+//    },
 
     renderCreatePlaylist() {
         document.getElementById('app-content').innerHTML = `
