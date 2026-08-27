@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: sigmawoman/api_gateway
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "f5b048a6a253711e3ffed83d9e78153d49a86048"
 
 service:
