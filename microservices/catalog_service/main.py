@@ -11,6 +11,7 @@ from catalog_service import catalog_pb2, catalog_pb2_grpc
 from catalog_service.spotify_client import spotify_client
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)  # <-- ДОБАВИТЬ ЭТУ СТРОКУ
 
 
 class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):

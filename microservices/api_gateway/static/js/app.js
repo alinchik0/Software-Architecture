@@ -94,32 +94,81 @@ const App = {
     }
 },
 
-    renderSearchView() {
-        document.getElementById('app-content').innerHTML = `
-            <h2>Поиск музыки (Deezer)</h2>
-            <div style="display: flex; gap: 10px; margin: 20px 0;">
-                <input type="text" id="search-input" placeholder="Исполнитель или название..." style="flex: 1; padding: 12px; background: #333; border: none; color: white; border-radius: 4px;">
-                <button onclick="App.doSearch()" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Найти</button>
-            </div>
-            <div id="search-results-container"></div>
-        `;
-    },
+//    renderSearchView() {
+//        document.getElementById('app-content').innerHTML = `
+//            <h2>Поиск музыки (Deezer)</h2>
+//            <div style="display: flex; gap: 10px; margin: 20px 0;">
+//                <input type="text" id="search-input" placeholder="Исполнитель или название..." style="flex: 1; padding: 12px; background: #333; border: none; color: white; border-radius: 4px;">
+//                <button onclick="App.doSearch()" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Найти</button>
+//            </div>
+//            <div id="search-results-container"></div>
+//        `;
+//    },
+      renderSearchView() {
+    // Проверяем, уже ли мы на странице поиска
+    const existingSearchView = document.getElementById('search-view');
+    if (existingSearchView) {
+        // Просто показываем существующий view
+        document.getElementById('app-content').innerHTML = '';
+        document.getElementById('app-content').appendChild(existingSearchView);
+        return;
+    }
 
-    async doSearch() {
-        const query = document.getElementById('search-input').value;
-        if (!query) return;
-        document.getElementById('search-results-container').innerHTML = '<p>Поиск...</p>';
-        try {
-            const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=10`);
+    // Создаем контейнер для поиска
+    const searchView = document.createElement('div');
+    searchView.id = 'search-view';
+    searchView.innerHTML = `
+        <h2>Поиск музыки</h2>
+        <div style="display: flex; gap: 10px; margin: 20px 0;">
+            <input type="text" id="search-input" placeholder="Исполнитель или название..."
+                   style="flex: 1; padding: 12px; background: #333; border: none; color: white; border-radius: 4px;">
+            <button onclick="App.doSearch()" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Найти</button>
+        </div>
+        <div id="search-results-container"></div>
+    `;
 
-            // <-- 2. ДОБАВИТЬ: сохраняем треки в App, прежде чем рисовать
-            this.currentSearchResults = data.tracks || [];
+    document.getElementById('app-content').innerHTML = '';
+    document.getElementById('app-content').appendChild(searchView);
 
-            UI.renderSearchResults(this.currentSearchResults);
-        } catch (err) {
-            UI.showToast('Ошибка поиска', 'error');
+    // Добавляем обработчик Enter
+    document.getElementById('search-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            App.doSearch();
         }
-    },
+    });
+},
+
+//    async doSearch() {
+//        const query = document.getElementById('search-input').value;
+//        if (!query) return;
+//        document.getElementById('search-results-container').innerHTML = '<p>Поиск...</p>';
+//        try {
+//            const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=10`);
+//
+//            // <-- 2. ДОБАВИТЬ: сохраняем треки в App, прежде чем рисовать
+//            this.currentSearchResults = data.tracks || [];
+//
+//            UI.renderSearchResults(this.currentSearchResults);
+//        } catch (err) {
+//            UI.showToast('Ошибка поиска', 'error');
+//        }
+//    },
+      async doSearch() {
+    const query = document.getElementById('search-input').value;
+    if (!query) return;
+
+    const resultsContainer = document.getElementById('search-results-container');
+    resultsContainer.innerHTML = '<p>Поиск...</p>';
+
+    try {
+        const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=10`);
+        this.currentSearchResults = data.tracks || [];
+        UI.renderSearchResults(this.currentSearchResults);
+    } catch (err) {
+        UI.showToast('Ошибка поиска', 'error');
+        resultsContainer.innerHTML = '<p>Ничего не найдено</p>';
+    }
+},
 
     async createPlaylist() {
         const title = document.getElementById('pl-title').value;
