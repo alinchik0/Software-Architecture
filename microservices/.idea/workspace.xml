@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94caf971-34ae-4815-aa2b-93bad4d342ac" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/kafka_producer.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/kafka_producer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/testing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +49,7 @@
       <recent name="C:\Users\Lina\Desktop\Software-Architecture\microservices\user_service\protos" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.playlist_testing">
+  <component name="RunManager" selected="Python.testing">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -177,8 +175,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.playlist_testing" />
         <item itemvalue="Python.testing" />
+        <item itemvalue="Python.playlist_testing" />
       </list>
     </recent_temporary>
   </component>
