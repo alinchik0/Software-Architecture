@@ -4,6 +4,8 @@ import logging
 import sys
 import os
 
+import httpx
+
 # Добавляем корень проекта в путь для импорта
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
