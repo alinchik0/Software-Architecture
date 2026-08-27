@@ -53,32 +53,35 @@ const UI = {
 //        html += '</div>';
 //        content.innerHTML = html;
 
-         renderSearchResults(tracks, isPopular = false) {
+        renderSearchResults(tracks) {
+        // ИЗМЕНЕНИЕ ЗДЕСЬ: берем только контейнер результатов, а не весь экран
         const container = document.getElementById('search-results-container');
         if (!container) return;
 
         if (!tracks || tracks.length === 0) {
-            container.innerHTML = '<p>Ничего не найдено</p>';
+            container.innerHTML = '<p>Ничего не найдено.</p>';
             return;
         }
 
-        const title = isPopular ? '<h3 style="margin-bottom: 15px;">Популярные треки</h3>' : '';
+        let html = '<div class="grid-container">';
+        tracks.forEach((track, index) => {
+            html += `
+                <div class="track-card" onclick='App.playFromSearch(${index})' style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px; cursor: pointer;">
+                    <div class="card-cover" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #444; border-radius: 4px;">
+                        ${track.cover ? `<img src="${track.cover}" alt="cover" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">` : '🎵'}
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="card-title" style="font-weight: bold;">${track.title}</div>
+                        <div class="card-desc" style="color: #aaa; font-size: 0.9em;">${track.artist}</div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
 
-        container.innerHTML = title + tracks.map((track, index) => `
-            <div class="track-card" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px; transition: background 0.2s;">
-                <img src="${track.cover || 'https://via.placeholder.com/60'}" alt="cover" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; background: #444;">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title || 'Неизвестно'}</div>
-                    <div style="color: #aaa; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist || 'Неизвестный исполнитель'}</div>
-                </div>
-                <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                    <button onclick="App.playFromSearch(${index})" title="Воспроизвести"
-                            style="background: var(--accent, #1db954); border: none; color: black; width: 40px; height: 40px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">▶</button>
-                </div>
-            </div>
-        `).join('');
+        // ИЗМЕНЕНИЕ ЗДЕСЬ: вставляем HTML только внутрь контейнера результатов
+        container.innerHTML = html;
     },
-
 //        // Сохраняем текущие результаты в глобальную переменную для плеера
 //        this.currentSearchResults = tracks;
 //    },
