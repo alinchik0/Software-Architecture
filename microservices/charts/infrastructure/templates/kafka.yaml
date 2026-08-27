@@ -12,6 +12,8 @@ spec:
     metadata:
       labels:
         app: zookeeper
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
         - name: zookeeper
@@ -33,7 +35,6 @@ spec:
   selector:
     app: zookeeper
 ---
-# 👇 KAFKA ОТ CONFLUENT (полная конфигурация для Kubernetes) 👇
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,6 +48,8 @@ spec:
     metadata:
       labels:
         app: kafka
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
         - name: kafka
@@ -68,8 +71,6 @@ spec:
               value: "PLAINTEXT"
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
               value: "1"
-            - name: KAFKA_LOG_DIRS
-              value: "/var/lib/kafka/data"
             - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
               value: "true"
           resources:
@@ -86,8 +87,10 @@ metadata:
   name: kafka
 spec:
   ports:
-    - port: 9092
+    - name: kafka-port
+      port: 9092
       targetPort: 9092
+      appProtocol: tcp
   selector:
     app: kafka
 {{- end }}
