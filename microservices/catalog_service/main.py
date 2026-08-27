@@ -37,7 +37,7 @@ class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):
 
 	async def GetTrack(self, request, context):
 		track_id = request.track_id
-		logger.info(f"Getting track info for ID: {track_id}")
+		# logger.info(f"Getting track info for ID: {track_id}")
 
 		try:
 			# Делаем запрос к Jamendo по конкретному ID
@@ -64,11 +64,11 @@ class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):
 					)
 				)
 			else:
-				logger.warning(f"Track {track_id} not found in Jamendo")
+				# logger.warning(f"Track {track_id} not found in Jamendo")
 				return catalog_pb2.GetTrackResponse(found=False)
 
 		except Exception as e:
-			logger.error(f"Error fetching track {track_id}: {e}")
+			# logger.error(f"Error fetching track {track_id}: {e}")
 			context.set_code(grpc.StatusCode.INTERNAL)
 			context.set_details(str(e))
 			return catalog_pb2.GetTrackResponse(found=False)
