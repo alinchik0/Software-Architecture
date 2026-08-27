@@ -1,11 +1,15 @@
 const UI = {
     showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000); // Исчезает через 3 сек
+    const container = document.getElementById('toast-container');
+    if (!container) {
+        console.error('toast-container not found!');
+        return;
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
     },
 
     renderLibrary(playlists) {
@@ -53,17 +57,21 @@ const UI = {
 //        html += '</div>';
 //        content.innerHTML = html;
 
-        renderSearchResults(tracks) {
-        // ИЗМЕНЕНИЕ ЗДЕСЬ: берем только контейнер результатов, а не весь экран
+        renderSearchResults(tracks, isPopular = false) {
         const container = document.getElementById('search-results-container');
-        if (!container) return;
+        if (!container) {
+            console.error('search-results-container not found!');
+            return;
+        }
 
         if (!tracks || tracks.length === 0) {
             container.innerHTML = '<p>Ничего не найдено.</p>';
             return;
         }
 
-        let html = '<div class="grid-container">';
+        const title = isPopular ? '<h3 style="margin-bottom: 15px;">Популярные треки</h3>' : '';
+
+        let html = title;
         tracks.forEach((track, index) => {
             html += `
                 <div class="track-card" onclick='App.playFromSearch(${index})' style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px; cursor: pointer;">
@@ -77,14 +85,11 @@ const UI = {
                 </div>
             `;
         });
-        html += '</div>';
 
-        // ИЗМЕНЕНИЕ ЗДЕСЬ: вставляем HTML только внутрь контейнера результатов
         container.innerHTML = html;
     },
 //        // Сохраняем текущие результаты в глобальную переменную для плеера
 //        this.currentSearchResults = tracks;
-//    },
 
     renderCreatePlaylist() {
         document.getElementById('app-content').innerHTML = `
