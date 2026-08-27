@@ -1,5 +1,6 @@
 import logging
 import grpc
+from kafka_producer import kafka_producer
 from typing import Optional
 # Нужен для корректной обработки IntegrityError на уровне servicer
 from sqlalchemy.exc import IntegrityError
@@ -49,6 +50,12 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
                 data = await create_playlist(
                     db, request.owner_id, request.title, request.description, request.is_public
                 )
+
+                await kafka_producer.publish(
+                    "playlist.created",
+                    {"playlist_id": data["playlist_id"], "owner_id": data["owner_id"], "title": data["title"]}
+                )
+
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)
                 return resp

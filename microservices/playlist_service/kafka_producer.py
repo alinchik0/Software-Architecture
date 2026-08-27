@@ -120,5 +120,5 @@ class KafkaProducer:
             except Exception as e:
                 log.warning(f"[KAFKA] Error stopping producer: {e}")
 
-# Global instance
+# Глобальный экземпляр
 kafka_producer = KafkaProducer()

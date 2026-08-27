@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94caf971-34ae-4815-aa2b-93bad4d342ac" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/charts/infrastructure/templates/kafka.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/charts/infrastructure/templates/kafka.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playlist_service/kafka_producer.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/kafka_producer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
