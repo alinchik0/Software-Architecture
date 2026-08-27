@@ -104,39 +104,79 @@ const App = {
 //            <div id="search-results-container"></div>
 //        `;
 //    },
-      renderSearchView() {
-    // Проверяем, уже ли мы на странице поиска
-    const existingSearchView = document.getElementById('search-view');
-    if (existingSearchView) {
-        // Просто показываем существующий view
-        document.getElementById('app-content').innerHTML = '';
-        document.getElementById('app-content').appendChild(existingSearchView);
-        return;
-    }
+    renderSearchView() {
+        const content = document.getElementById('app-content');
 
-    // Создаем контейнер для поиска
-    const searchView = document.createElement('div');
-    searchView.id = 'search-view';
-    searchView.innerHTML = `
-        <h2>Поиск музыки</h2>
-        <div style="display: flex; gap: 10px; margin: 20px 0;">
-            <input type="text" id="search-input" placeholder="Исполнитель или название..."
-                   style="flex: 1; padding: 12px; background: #333; border: none; color: white; border-radius: 4px;">
-            <button onclick="App.doSearch()" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Найти</button>
-        </div>
-        <div id="search-results-container"></div>
-    `;
+        // Создаем структуру поиска только если её еще нет
+        // Это предотвращает потерю фокуса и исчезновение строки при обновлениях
+        if (!document.getElementById('search-view-container')) {
+            content.innerHTML = `
+                <div id="search-view-container">
+                    <h2>Поиск музыки</h2>
+                    <div style="display: flex; gap: 10px; margin: 20px 0;">
+                        <input type="text" id="search-input" placeholder="Исполнитель или название..."
+                               style="flex: 1; padding: 12px; background: #333; border: none; color: white; border-radius: 4px;">
+                        <button onclick="App.doSearch()" style="padding: 12px 24px; background: var(--accent, #1db954); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Найти</button>
+                    </div>
+                    <div id="search-results-container">
+                        <p style="color: #888;">Введите запрос или посмотрите популярные треки ниже</p>
+                    </div>
+                </div>
+            `;
 
-    document.getElementById('app-content').innerHTML = '';
-    document.getElementById('app-content').appendChild(searchView);
+            // Добавляем обработчик нажатия Enter
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    App.doSearch();
+                }
+            });
 
-    // Добавляем обработчик Enter
-    document.getElementById('search-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            App.doSearch();
+            // Загружаем популярные треки при первом открытии вкладки
+            this.loadPopularTracks();
         }
-    });
-},
+    },
+
+    async loadPopularTracks() {
+        const resultsContainer = document.getElementById('search-results-container');
+        if (!resultsContainer) return;
+
+        resultsContainer.innerHTML = '<p>Загрузка популярных треков...</p>';
+        try {
+            // Используем общий запрос как заглушку для "популярного",
+            // либо можно сделать отдельный эндпоинт, если он есть
+            const data = await API.request(`/catalog/search?q=hit&limit=10`);
+            this.currentSearchResults = data.tracks || [];
+
+            if (this.currentSearchResults.length > 0) {
+                UI.renderSearchResults(this.currentSearchResults, true); // true = это популярный список
+            } else {
+                resultsContainer.innerHTML = '<p>Начните вводить запрос для поиска</p>';
+            }
+        } catch (err) {
+            resultsContainer.innerHTML = '<p>Начните вводить запрос для поиска</p>';
+        }
+    },
+
+    async doSearch() {
+        const searchInput = document.getElementById('search-input');
+        const query = searchInput ? searchInput.value.trim() : '';
+
+        if (!query) return;
+
+        const resultsContainer = document.getElementById('search-results-container');
+        resultsContainer.innerHTML = '<p>Поиск...</p>';
+
+        try {
+            const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=15`);
+            this.currentSearchResults = data.tracks || [];
+
+            // Передаем false, чтобы показать, что это результаты поиска, а не популярные треки
+            UI.renderSearchResults(this.currentSearchResults, false);
+        } catch (err) {
+            UI.showToast('Ошибка поиска: ' + err.message, 'error');
+            resultsContainer.innerHTML = '<p>Ничего не найдено или произошла ошибка</p>';
+        }
+    },
 
 //    async doSearch() {
 //        const query = document.getElementById('search-input').value;
@@ -153,22 +193,6 @@ const App = {
 //            UI.showToast('Ошибка поиска', 'error');
 //        }
 //    },
-      async doSearch() {
-    const query = document.getElementById('search-input').value;
-    if (!query) return;
-
-    const resultsContainer = document.getElementById('search-results-container');
-    resultsContainer.innerHTML = '<p>Поиск...</p>';
-
-    try {
-        const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=10`);
-        this.currentSearchResults = data.tracks || [];
-        UI.renderSearchResults(this.currentSearchResults);
-    } catch (err) {
-        UI.showToast('Ошибка поиска', 'error');
-        resultsContainer.innerHTML = '<p>Ничего не найдено</p>';
-    }
-},
 
     async createPlaylist() {
         const title = document.getElementById('pl-title').value;
