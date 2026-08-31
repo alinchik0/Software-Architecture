@@ -88,12 +88,20 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
     async def UpdatePlaylist(self, request, context):
         try:
             async with async_session_factory() as db:
-                title = request.title if request.HasField("title") else None
-                description = request.description if request.HasField("description") else None
-                is_public = request.is_public if request.HasField("is_public") else None
                 data = await update_playlist(
-                    db, request.playlist_id, request.user_id, title, description, is_public
+                    db, request.playlist_id, request.user_id, request.title, request.description, request.is_public
                 )
+
+                # ОТПРАВЛЯЕМ СОБЫТИЕ В KAFKA
+                await kafka_producer.publish(
+                    "playlist.updated",
+                    {
+                        "playlist_id": data["playlist_id"],
+                        "user_id": data["owner_id"],
+                        "title": data["title"]
+                    }
+                )
+
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)
                 return resp
@@ -112,6 +120,14 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
         try:
             async with async_session_factory() as db:
                 await delete_playlist(db, request.playlist_id, request.user_id)
+                await kafka_producer.publish(
+                    "playlist.deleted",
+                    {
+                        "playlist_id": request.playlist_id,
+                        "user_id": request.user_id
+                    }
+                )
+
                 return playlist_pb2.MessageResponse(success=True, message="deleted")
         except NotFound as e:
             _set_error(context, grpc.StatusCode.NOT_FOUND, str(e))
@@ -123,7 +139,6 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
             log.exception("DeletePlaylist failed")
             _set_error(context, grpc.StatusCode.INTERNAL, str(e))
             return playlist_pb2.MessageResponse(success=False, message=str(e))
-
     async def AddTrack(self, request, context):
         try:
             async with async_session_factory() as db:
@@ -131,6 +146,18 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
                     db, request.playlist_id, request.user_id,
                     request.spotify_track_id, request.position
                 )
+
+                # ОТПРАВЛЯЕМ СОБЫТИЕ В KAFKA
+                await kafka_producer.publish(
+                    "track.added",
+                    {
+                        "playlist_id": request.playlist_id,
+                        "user_id": request.user_id,
+                        "spotify_track_id": request.spotify_track_id,
+                        "position": request.position
+                    }
+                )
+
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)
                 return resp
@@ -154,6 +181,16 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
                 data = await remove_track(
                     db, request.playlist_id, request.user_id, request.spotify_track_id
                 )
+
+                await kafka_producer.publish(
+                    "track.removed",
+                    {
+                        "playlist_id": request.playlist_id,
+                        "user_id": request.user_id,
+                        "spotify_track_id": request.spotify_track_id
+                    }
+                )
+                
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)
                 return resp
