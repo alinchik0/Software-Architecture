@@ -94,16 +94,6 @@ const App = {
     }
 },
 
-//    renderSearchView() {
-//        document.getElementById('app-content').innerHTML = `
-//            <h2>Поиск музыки (Deezer)</h2>
-//            <div style="display: flex; gap: 10px; margin: 20px 0;">
-//                <input type="text" id="search-input" placeholder="Исполнитель или название..." style="flex: 1; padding: 12px; background: #333; border: none; color: white; border-radius: 4px;">
-//                <button onclick="App.doSearch()" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Найти</button>
-//            </div>
-//            <div id="search-results-container"></div>
-//        `;
-//    },
     renderSearchView() {
         const content = document.getElementById('app-content');
 
@@ -178,22 +168,6 @@ const App = {
         }
     },
 
-//    async doSearch() {
-//        const query = document.getElementById('search-input').value;
-//        if (!query) return;
-//        document.getElementById('search-results-container').innerHTML = '<p>Поиск...</p>';
-//        try {
-//            const data = await API.request(`/catalog/search?q=${encodeURIComponent(query)}&limit=10`);
-//
-//            // <-- 2. ДОБАВИТЬ: сохраняем треки в App, прежде чем рисовать
-//            this.currentSearchResults = data.tracks || [];
-//
-//            UI.renderSearchResults(this.currentSearchResults);
-//        } catch (err) {
-//            UI.showToast('Ошибка поиска', 'error');
-//        }
-//    },
-
     async createPlaylist() {
         const title = document.getElementById('pl-title').value;
         const description = document.getElementById('pl-desc').value;
@@ -208,10 +182,42 @@ const App = {
 
     async openPlaylist(id) {
         UI.showToast('Загрузка плейлиста...', 'info');
-        // Здесь будет логика открытия детальной страницы плейлиста (День 3)
-        // Пока просто заглушка
-        document.getElementById('app-content').innerHTML = `<h2>Плейлист #${id}</h2><p>Детальный просмотр будет реализован в День 3.</p><button onclick="App.navigate('library')" style="margin-top:20px; padding: 10px;">Назад</button>`;
+        try {
+            // Запрашиваем детали плейлиста
+            const playlist = await API.request(`/playlists/${id}`);
+
+            // Проверяем, является ли текущий пользователь владельцем (для кнопки удаления)
+            const isOwner = playlist.owner_id === this.currentUser.id;
+
+            // Передаем данные в UI
+            UI.renderPlaylistDetail(playlist, isOwner);
+        } catch (err) {
+            UI.showToast('Не удалось загрузить плейлист: ' + err.message, 'error');
+            // В случае ошибки (например, плейлист удален или нет доступа) возвращаем в медиатеку
+            this.navigate('library');
+        }
     },
+
+    async deletePlaylist(id) {
+        // Защита от случайного нажатия
+        if (!confirm('Вы уверены, что хотите удалить этот плейлист? Это действие нельзя отменить.')) {
+            return;
+        }
+
+        try {
+            // Отправляем запрос на удаление.
+            // Примечание: Бэкенд при успешном удалении должен опубликовать событие 'playlist.deleted' в Kafka
+            await API.request(`/playlists/${id}`, 'DELETE');
+
+            UI.showToast('Плейлист успешно удален', 'success');
+
+            // Возвращаемся в медиатеку, где список обновится
+            this.navigate('library');
+        } catch (err) {
+            UI.showToast('Ошибка удаления: ' + err.message, 'error');
+        }
+    },
+    
     playFromSearch(index) {
         if (!this.currentSearchResults || !this.currentSearchResults[index]) {
             UI.showToast('Ошибка: трек не найден', 'error');
