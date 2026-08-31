@@ -234,6 +234,54 @@ const App = {
         }
     },
 
+        playPlaylist(playlistId) {
+        // Находим плейлист в текущем отображении (или можно сделать запрос, но мы уже загрузили его)
+        // Для простоты мы возьмем треки из текущего отображения, но лучше запросить заново,
+        // чтобы убедиться в актуальности. Сделаем запрос:
+        API.request(`/playlists/${playlistId}`)
+            .then(playlist => {
+                if (playlist.tracks && playlist.tracks.length > 0) {
+                    // Преобразуем формат треков из API в формат, который понимает Player
+                    const queue = playlist.tracks.map(t => ({
+                        id: t.spotify_track_id,
+                        title: t.title || 'Неизвестно',
+                        artist: t.artist || 'Неизвестный исполнитель',
+                        cover: t.cover || ''
+                    }));
+
+                    // Запускаем плеер с этой очередью
+                    Player.setQueue(queue, 0);
+                    UI.showToast('Воспроизведение началось', 'success');
+                } else {
+                    UI.showToast('Плейлист пуст', 'info');
+                }
+            })
+            .catch(err => {
+                UI.showToast('Ошибка загрузки плейлиста: ' + err.message, 'error');
+            });
+    },
+
+    async removeTrackFromPlaylist(playlistId, trackId) {
+        if (!confirm('Удалить этот трек из плейлиста?')) {
+            return;
+        }
+
+        try {
+            // Внимание: проверьте, как именно ваш API Gateway принимает этот запрос.
+            // Обычно это DELETE /playlists/{playlist_id}/tracks/{spotify_track_id}
+            // или DELETE /playlists/{playlist_id}/tracks с передачей track_id в query/body.
+            // Ниже приведен наиболее RESTful вариант. Если у вас иначе, поправьте URL.
+            await API.request(`/playlists/${playlistId}/tracks/${trackId}`, 'DELETE');
+
+            UI.showToast('Трек удален из плейлиста', 'success');
+
+            // Перезагружаем просмотр плейлиста, чтобы обновить список
+            this.openPlaylist(playlistId);
+        } catch (err) {
+            UI.showToast('Ошибка удаления: ' + err.message, 'error');
+        }
+    },
+
     async createPlaylist() {
         const title = document.getElementById('pl-title').value;
         const description = document.getElementById('pl-desc').value;
