@@ -166,7 +166,7 @@ const UI = {
                         <div style="color: #aaa; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist || 'Неизвестный исполнитель'}</div>
                     </div>
                     ${isOwner ? `
-                    <button onclick="App.removeTrackFromPlaylist(${playlist.playlist_id}, '${track.spotify_track_id}')"
+                    <button onclick="App.removeTrackFromPlaylist(${playlist.playlist_id}, String('${track.spotify_track_id}'))"
                             title="Удалить из плейлиста"
                             style="background: none; border: none; color: #ff4444; font-size: 1.2em; cursor: pointer; padding: 5px;">🗑️</button>
                     ` : ''}
