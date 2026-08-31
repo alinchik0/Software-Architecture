@@ -168,6 +168,72 @@ const App = {
         }
     },
 
+        async showPlaylistSelector(trackId) {
+        try {
+            // Получаем список плейлистов пользователя
+            const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
+
+            if (!playlists || playlists.length === 0) {
+                UI.showToast('У вас пока нет плейлистов. Создайте первый!', 'info');
+                return;
+            }
+
+            // Создаём модальное окно
+            const modal = document.createElement('div');
+            modal.id = 'playlist-selector-modal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+
+            modal.innerHTML = `
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <h3 style="margin-top: 0; margin-bottom: 20px;">Выберите плейлист</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        ${playlists.map(pl => `
+                            <div onclick="App.addTrackToPlaylist('${trackId}', ${pl.playlist_id})"
+                                 style="padding: 15px; background: #2a2a2a; border-radius: 8px; cursor: pointer; transition: background 0.2s;"
+                                 onmouseover="this.style.background='#3a3a3a'"
+                                 onmouseout="this.style.background='#2a2a2a'">
+                                <div style="font-weight: bold;">${pl.title}</div>
+                                <div style="color: #aaa; font-size: 0.85em; margin-top: 4px;">${pl.description || 'Без описания'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button onclick="document.getElementById('playlist-selector-modal').remove()"
+                            style="margin-top: 20px; width: 100%; padding: 12px; background: #444; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold;">Отмена</button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Закрытие по клику на фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        } catch (err) {
+            UI.showToast('Ошибка загрузки плейлистов: ' + err.message, 'error');
+        }
+    },
+
+    async addTrackToPlaylist(trackId, playlistId) {
+        // Закрываем модальное окно
+        const modal = document.getElementById('playlist-selector-modal');
+        if (modal) modal.remove();
+
+        try {
+            await API.request(`/playlists/${playlistId}/tracks`, 'POST', {
+                spotify_track_id: trackId,
+                position: 0
+            });
+
+            UI.showToast('Трек добавлен в плейлист!', 'success');
+        } catch (err) {
+            // Обрабатываем случай дубликата
+            const message = err.message && err.message.toLowerCase().includes('already')
+                ? 'Этот трек уже есть в плейлисте'
+                : 'Ошибка добавления: ' + err.message;
+            UI.showToast(message, 'error');
+        }
+    },
+
     async createPlaylist() {
         const title = document.getElementById('pl-title').value;
         const description = document.getElementById('pl-desc').value;
@@ -217,7 +283,7 @@ const App = {
             UI.showToast('Ошибка удаления: ' + err.message, 'error');
         }
     },
-    
+
     playFromSearch(index) {
         if (!this.currentSearchResults || !this.currentSearchResults[index]) {
             UI.showToast('Ошибка: трек не найден', 'error');

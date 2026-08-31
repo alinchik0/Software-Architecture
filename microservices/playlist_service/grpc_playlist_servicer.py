@@ -190,7 +190,7 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
                         "spotify_track_id": request.spotify_track_id
                     }
                 )
-                
+
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)
                 return resp
