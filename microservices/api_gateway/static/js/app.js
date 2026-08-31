@@ -261,21 +261,16 @@ const App = {
             });
     },
 
-    async removeTrackFromPlaylist(playlistId, trackId) {
+        async removeTrackFromPlaylist(playlistId, trackId) {
         if (!confirm('Удалить этот трек из плейлиста?')) {
             return;
         }
 
         try {
-            // Внимание: проверьте, как именно ваш API Gateway принимает этот запрос.
-            // Обычно это DELETE /playlists/{playlist_id}/tracks/{spotify_track_id}
-            // или DELETE /playlists/{playlist_id}/tracks с передачей track_id в query/body.
-            // Ниже приведен наиболее RESTful вариант. Если у вас иначе, поправьте URL.
-            await API.request(`/playlists/${playlistId}/tracks/${trackId}`, 'DELETE');
+            // ЯВНО преобразуем в строку, чтобы избежать сравнения числа со строкой в БД
+            await API.request(`/playlists/${playlistId}/tracks/${String(trackId)}`, 'DELETE');
 
             UI.showToast('Трек удален из плейлиста', 'success');
-
-            // Перезагружаем просмотр плейлиста, чтобы обновить список
             this.openPlaylist(playlistId);
         } catch (err) {
             UI.showToast('Ошибка удаления: ' + err.message, 'error');
