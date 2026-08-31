@@ -53,7 +53,11 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
 
                 await kafka_producer.publish(
                     "playlist.created",
-                    {"playlist_id": data["playlist_id"], "owner_id": data["owner_id"], "title": data["title"]}
+                    {
+                        "playlist_id": data["playlist_id"],
+                        "owner_id": data["owner_id"],
+                        "title": data["title"]
+                    }
                 )
 
                 resp = playlist_pb2.PlaylistResponse()

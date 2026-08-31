@@ -67,10 +67,6 @@ async def create_playlist(
     except IntegrityError as e:
         await db.rollback()
         raise
-    await kafka_producer.publish(
-        "playlist.created", pl.id, owner_id,
-        {"title": title, "description": description, "is_public": is_public}
-    )
     return await _playlist_to_dict(pl, [])
 
 
@@ -160,10 +156,6 @@ async def add_track(
     tracks = list(res.scalars().all())
 
     await _invalidate_cache(playlist_id)
-    await kafka_producer.publish(
-        "playlist.track.added", playlist_id, user_id,
-        {"spotify_track_id": spotify_track_id, "position": position}
-    )
     return await _playlist_to_dict(pl, tracks)
 
 
@@ -188,10 +180,6 @@ async def remove_track(db: AsyncSession, playlist_id: int, user_id: int, spotify
     tracks = list(res.scalars().all())
 
     await _invalidate_cache(playlist_id)
-    await kafka_producer.publish(
-        "playlist.track.removed", playlist_id, user_id,
-        {"spotify_track_id": spotify_track_id}
-    )
     return await _playlist_to_dict(pl, tracks)
 
 
