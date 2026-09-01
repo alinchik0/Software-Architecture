@@ -14,71 +14,106 @@ const UI = {
 
     renderLibrary(playlists) {
         const content = document.getElementById('app-content');
-        if (!playlists || playlists.length === 0) {
-            content.innerHTML = '<h2>Моя медиатека</h2><p class="empty-state">У вас пока нет плейлистов.</p>';
-            return;
-        }
 
         let html = '<h2>Моя медиатека</h2><div class="grid-container">';
-        playlists.forEach(pl => {
-            // Используем заглушку обложки для плейлиста, пока не добавим кастомные обложки
-            html += `
-                <div class="playlist-card" onclick="App.openPlaylist(${pl.playlist_id})">
-                    <div class="card-cover">🎵</div>
-                    <div class="card-title">${pl.title}</div>
-                    <div class="card-desc">${pl.description || 'Без описания'}</div>
-                </div>
-            `;
-        });
+
+        // Карточка "Создать плейлист" (всегда первая)
+        html += `
+            <div class="playlist-card" onclick="App.showCreatePlaylistModal()"
+                 style="border: 2px dashed #666; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; cursor: pointer;">
+                <div style="font-size: 3em; margin-bottom: 10px;">➕</div>
+                <div style="font-weight: bold; color: var(--accent, #1db954);">Создать новый плейлист</div>
+            </div>
+        `;
+
+        // Остальные плейлисты
+        if (playlists && playlists.length > 0) {
+            playlists.forEach(pl => {
+                html += `
+                    <div class="playlist-card" onclick="App.openPlaylist(${pl.playlist_id})">
+                        <div class="card-cover">🎵</div>
+                        <div class="card-title">${pl.title}</div>
+                        <div class="card-desc">${pl.description || 'Без описания'}</div>
+                    </div>
+                `;
+            });
+        } else {
+            html += '<p class="empty-state" style="grid-column: 1/-1; text-align: center; color: #888;">У вас пока нет плейлистов. Создайте первый!</p>';
+        }
+
         html += '</div>';
         content.innerHTML = html;
     },
 
-        renderPlaylistDetail(playlist, isOwner) {
-        const content = document.getElementById('app-content');
+//    renderLibrary(playlists) {
+//        const content = document.getElementById('app-content');
+//        if (!playlists || playlists.length === 0) {
+//            content.innerHTML = '<h2>Моя медиатека</h2><p class="empty-state">У вас пока нет плейлистов.</p>';
+//            return;
+//        }
+//
+//        let html = '<h2>Моя медиатека</h2><div class="grid-container">';
+//        playlists.forEach(pl => {
+//            // Используем заглушку обложки для плейлиста, пока не добавим кастомные обложки
+//            html += `
+//                <div class="playlist-card" onclick="App.openPlaylist(${pl.playlist_id})">
+//                    <div class="card-cover">🎵</div>
+//                    <div class="card-title">${pl.title}</div>
+//                    <div class="card-desc">${pl.description || 'Без описания'}</div>
+//                </div>
+//            `;
+//        });
+//        html += '</div>';
+//        content.innerHTML = html;
+//    },
 
-        // Формируем список треков
-        const tracksHtml = (playlist.tracks && playlist.tracks.length > 0)
-            ? playlist.tracks.map((track, index) => `
-                <div class="track-card" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px;">
-                    <div style="width: 30px; text-align: center; color: #888; font-weight: bold;">${index + 1}</div>
-                    <img src="${track.cover || 'https://via.placeholder.com/50'}" alt="cover" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; background: #444;">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title || 'Неизвестно'}</div>
-                        <div style="color: #aaa; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist || 'Неизвестный исполнитель'}</div>
-                    </div>
-                    <!-- Кнопка удаления трека из плейлиста будет добавлена на Этапе 3 -->
-                </div>
-            `).join('')
-            : '<p style="color: #888; margin-top: 20px;">В этом плейлисте пока нет треков. Найдите музыку и добавьте её сюда!</p>';
+//        renderPlaylistDetail(playlist, isOwner) {
+//        const content = document.getElementById('app-content');
+//
+//        // Формируем список треков
+//        const tracksHtml = (playlist.tracks && playlist.tracks.length > 0)
+//            ? playlist.tracks.map((track, index) => `
+//                <div class="track-card" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px;">
+//                    <div style="width: 30px; text-align: center; color: #888; font-weight: bold;">${index + 1}</div>
+//                    <img src="${track.cover || 'https://via.placeholder.com/50'}" alt="cover" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; background: #444;">
+//                    <div style="flex: 1; min-width: 0;">
+//                        <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title || 'Неизвестно'}</div>
+//                        <div style="color: #aaa; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist || 'Неизвестный исполнитель'}</div>
+//                    </div>
+//                    <!-- Кнопка удаления трека из плейлиста будет добавлена на Этапе 3 -->
+//                </div>
+//            `).join('')
+//            : '<p style="color: #888; margin-top: 20px;">В этом плейлисте пока нет треков. Найдите музыку и добавьте её сюда!</p>';
+//
+//        // Кнопка удаления отображается только для владельца
+//        const deleteButton = isOwner
+//            ? `<button onclick="App.deletePlaylist(${playlist.playlist_id})" style="background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;">Удалить плейлист</button>`
+//            : '';
+//
+//        // Рендерим всю страницу
+//        content.innerHTML = `
+//            <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+//                <button onclick="App.navigate('library')" style="background: none; border: none; color: var(--accent, #1db954); cursor: pointer; margin-bottom: 20px; font-size: 1em; display: flex; align-items: center; gap: 5px;">
+//                    ← Назад к медиатеке
+//                </button>
+//
+//                <h1 style="margin-bottom: 10px; font-size: 2.5em;">${playlist.title}</h1>
+//                <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1em;">${playlist.description || 'Без описания'}</p>
+//
+//                <div style="display: flex; gap: 15px; margin-bottom: 40px;">
+//                    <!-- Кнопка "Воспроизвести всё" будет добавлена на Этапе 3 -->
+//                    ${deleteButton}
+//                </div>
+//
+//                <h3 style="margin-bottom: 15px; color: #fff;">Треки (${playlist.tracks ? playlist.tracks.length : 0})</h3>
+//                <div id="playlist-tracks-container">
+//                    ${tracksHtml}
+//                </div>
+//            </div>
+//        `;
+//    },
 
-        // Кнопка удаления отображается только для владельца
-        const deleteButton = isOwner
-            ? `<button onclick="App.deletePlaylist(${playlist.playlist_id})" style="background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;">Удалить плейлист</button>`
-            : '';
 
-        // Рендерим всю страницу
-        content.innerHTML = `
-            <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-                <button onclick="App.navigate('library')" style="background: none; border: none; color: var(--accent, #1db954); cursor: pointer; margin-bottom: 20px; font-size: 1em; display: flex; align-items: center; gap: 5px;">
-                    ← Назад к медиатеке
-                </button>
-
-                <h1 style="margin-bottom: 10px; font-size: 2.5em;">${playlist.title}</h1>
-                <p style="color: #aaa; margin-bottom: 30px; font-size: 1.1em;">${playlist.description || 'Без описания'}</p>
-
-                <div style="display: flex; gap: 15px; margin-bottom: 40px;">
-                    <!-- Кнопка "Воспроизвести всё" будет добавлена на Этапе 3 -->
-                    ${deleteButton}
-                </div>
-
-                <h3 style="margin-bottom: 15px; color: #fff;">Треки (${playlist.tracks ? playlist.tracks.length : 0})</h3>
-                <div id="playlist-tracks-container">
-                    ${tracksHtml}
-                </div>
-            </div>
-        `;
-    },
 
 
         renderSearchResults(tracks, isPopular = false) {
@@ -114,25 +149,34 @@ const UI = {
         renderPlaylistDetail(playlist, isOwner) {
         const content = document.getElementById('app-content');
 
-        // Формируем список треков с кнопкой удаления
+                // Формируем список треков с кнопками действий
         const tracksHtml = (playlist.tracks && playlist.tracks.length > 0)
             ? playlist.tracks.map((track, index) => `
-                <div class="track-card" style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px;">
+                <div class="track-card"
+                     onclick="App.playPlaylistFromTrack(${playlist.playlist_id}, ${index})"
+                     style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px; cursor: pointer;">
                     <div style="width: 30px; text-align: center; color: #888; font-weight: bold;">${index + 1}</div>
                     <img src="${track.cover || 'https://via.placeholder.com/50/444444/888888?text=🎵'}" alt="cover" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; background: #444;">
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title || 'Неизвестно'}</div>
                         <div style="color: #aaa; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist || 'Неизвестный исполнитель'}</div>
                     </div>
-                    ${isOwner ? `
-                    <button onclick="App.removeTrackFromPlaylist(${playlist.playlist_id}, String('${track.spotify_track_id}'))"
-                            title="Удалить из плейлиста"
-                            style="background: none; border: none; color: #ff4444; font-size: 1.2em; cursor: pointer; padding: 5px;">🗑️</button>
-                    ` : ''}
+                    <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                        <button onclick="event.stopPropagation(); App.toggleFavorite('${track.spotify_track_id}', this)"
+                                title="В избранное"
+                                style="background: none; border: none; color: #888; font-size: 1.3em; cursor: pointer; padding: 5px;">♡</button>
+                        <button onclick="event.stopPropagation(); App.showPlaylistSelector('${track.spotify_track_id}')"
+                                title="Добавить в плейлист"
+                                style="background: none; border: 2px solid var(--accent, #1db954); color: var(--accent, #1db954); width: 36px; height: 36px; border-radius: 50%; font-size: 1.2em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
+                        ${isOwner ? `
+                        <button onclick="event.stopPropagation(); App.removeTrackFromPlaylist(${playlist.playlist_id}, '${track.spotify_track_id}')"
+                                title="Удалить из плейлиста"
+                                style="background: none; border: none; color: #ff4444; font-size: 1.2em; cursor: pointer; padding: 5px;">️</button>
+                        ` : ''}
+                    </div>
                 </div>
             `).join('')
             : '<p style="color: #888; margin-top: 20px;">В этом плейлисте пока нет треков. Найдите музыку и добавьте её сюда!</p>';
-
         // Кнопки действий (только для владельца)
                 const actionButtons = isOwner ? `
             <button onclick="App.playPlaylist(${playlist.playlist_id})"

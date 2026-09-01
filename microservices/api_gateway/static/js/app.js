@@ -13,6 +13,15 @@ const App = {
             this.showAuth();
         }
 
+//        // Навигация по сайдбару
+//        document.querySelectorAll('.nav-btn').forEach(btn => {
+//            btn.addEventListener('click', (e) => {
+//                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+//                e.target.classList.add('active');
+//                this.navigate(e.target.dataset.view);
+//            });
+//        });
+
         // Навигация по сайдбару
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -22,6 +31,9 @@ const App = {
             });
         });
 
+        // Обработка роутинга при изменении hash
+        window.addEventListener('hashchange', () => this.handleRouting());
+
         // Обработчик формы создания плейлиста (делегирование событий)
         document.getElementById('app-content').addEventListener('submit', async (e) => {
             if (e.target.id === 'create-pl-form') {
@@ -29,6 +41,15 @@ const App = {
                 await this.createPlaylist();
             }
         });
+
+
+//        // Обработчик формы создания плейлиста (делегирование событий)
+//        document.getElementById('app-content').addEventListener('submit', async (e) => {
+//            if (e.target.id === 'create-pl-form') {
+//                e.preventDefault();
+//                await this.createPlaylist();
+//            }
+//        });
     },
 
     showAuth() {
@@ -40,13 +61,41 @@ const App = {
         document.getElementById('auth-screen').classList.remove('active');
         document.getElementById('app-screen').classList.add('active');
         document.getElementById('user-email').textContent = this.currentUser.email;
-        this.navigate('library');
+
+        // Обработка роутинга после показа приложения
+        if (window.location.hash) {
+            this.handleRouting();
+        } else {
+            this.navigate('library');
+        }
     },
 
-    navigate(view) {
+
+//    navigate(view) {
+//        if (view === 'library') this.loadLibrary();
+//        else if (view === 'search') this.renderSearchView();
+//        else if (view === 'create') UI.renderCreatePlaylist();
+//    },
+
+    navigate(view, param = null) {
+        // Обновляем URL с хэш-роутингом
+        const hash = param !== null ? `#/${view}/${param}` : `#/${view}`;
+        window.location.hash = hash;
+
+        // Рендерим нужный view
         if (view === 'library') this.loadLibrary();
         else if (view === 'search') this.renderSearchView();
-        else if (view === 'create') UI.renderCreatePlaylist();
+    },
+
+    // Обработка роутинга при загрузке страницы
+    handleRouting() {
+        const hash = window.location.hash.slice(2); // убираем "#/"
+        const [view, param] = hash.split('/');
+
+        if (view === 'library') this.loadLibrary();
+        else if (view === 'search') this.renderSearchView();
+        else if (view === 'playlist' && param) this.openPlaylist(parseInt(param));
+        else this.loadLibrary(); // по умолчанию
     },
 
     async handleLogin() {
@@ -444,6 +493,84 @@ const App = {
         } catch (err) {
             UI.showToast('Ошибка: ' + err.message, 'error');
         }
+    },
+
+        // Модальное окно создания плейлиста
+    showCreatePlaylistModal() {
+        const modal = document.createElement('div');
+        modal.id = 'create-playlist-modal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+
+        modal.innerHTML = `
+            <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
+                <h3 style="margin-top: 0; margin-bottom: 20px;">Создать новый плейлист</h3>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.9em;">Название</label>
+                    <input type="text" id="new-pl-title" placeholder="Название плейлиста"
+                           style="width: 100%; padding: 12px; background: #333; border: none; color: white; border-radius: 6px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.9em;">Описание</label>
+                    <textarea id="new-pl-desc" rows="3" placeholder="Описание (необязательно)"
+                              style="width: 100%; padding: 12px; background: #333; border: none; color: white; border-radius: 6px; box-sizing: border-box;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="App.createPlaylistFromModal()"
+                            style="flex: 1; padding: 12px; background: var(--accent, #1db954); border: none; color: black; border-radius: 8px; cursor: pointer; font-weight: bold;">Создать</button>
+                    <button onclick="document.getElementById('create-playlist-modal').remove()"
+                            style="flex: 1; padding: 12px; background: #444; border: none; color: white; border-radius: 8px; cursor: pointer;">Отмена</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    },
+
+    async createPlaylistFromModal() {
+        const title = document.getElementById('new-pl-title').value.trim();
+        const description = document.getElementById('new-pl-desc').value.trim();
+
+        if (!title) {
+            UI.showToast('Название не может быть пустым', 'error');
+            return;
+        }
+
+        try {
+            await API.request('/playlists', 'POST', { title, description, is_public: true });
+            UI.showToast('Плейлист создан!', 'success');
+
+            const modal = document.getElementById('create-playlist-modal');
+            if (modal) modal.remove();
+
+            this.loadLibrary();
+        } catch (err) {
+            UI.showToast('Ошибка создания: ' + err.message, 'error');
+        }
+    },
+
+    // Воспроизведение с конкретного трека в плейлисте
+    playPlaylistFromTrack(playlistId, startIndex) {
+        API.request(`/playlists/${playlistId}`)
+            .then(playlist => {
+                if (playlist.tracks && playlist.tracks.length > 0) {
+                    const queue = playlist.tracks.map(t => ({
+                        id: t.spotify_track_id,
+                        title: t.title || 'Неизвестно',
+                        artist: t.artist || 'Неизвестный исполнитель',
+                        cover: t.cover || ''
+                    }));
+
+                    Player.setQueue(queue, startIndex);
+                    UI.showToast('Воспроизведение началось', 'success');
+                }
+            })
+            .catch(err => {
+                UI.showToast('Ошибка: ' + err.message, 'error');
+            });
     },
 };
 
