@@ -84,15 +84,15 @@ const App = {
     },
 
     async loadLibrary() {
-    try {
-        // ПРАВИЛЬНЫЙ эндпоинт: получаем плейлисты конкретного пользователя
-        const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
-        UI.renderLibrary(playlists);
-    } catch (err) {
-        UI.showToast('Не удалось загрузить плейлисты', 'error');
-        console.error(err);
-    }
-},
+        try {
+            // ПРАВИЛЬНЫЙ эндпоинт: получаем плейлисты конкретного пользователя
+            const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
+            UI.renderLibrary(playlists);
+        } catch (err) {
+            UI.showToast('Не удалось загрузить плейлисты', 'error');
+            console.error(err);
+        }
+    },
 
     renderSearchView() {
         const content = document.getElementById('app-content');
@@ -168,7 +168,7 @@ const App = {
         }
     },
 
-        async showPlaylistSelector(trackId) {
+    async showPlaylistSelector(trackId) {
         try {
             // Получаем список плейлистов пользователя
             const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
@@ -234,7 +234,7 @@ const App = {
         }
     },
 
-        playPlaylist(playlistId) {
+    playPlaylist(playlistId) {
         // Находим плейлист в текущем отображении (или можно сделать запрос, но мы уже загрузили его)
         // Для простоты мы возьмем треки из текущего отображения, но лучше запросить заново,
         // чтобы убедиться в актуальности. Сделаем запрос:
@@ -261,7 +261,7 @@ const App = {
             });
     },
 
-        async removeTrackFromPlaylist(playlistId, trackId) {
+    async removeTrackFromPlaylist(playlistId, trackId) {
         if (!confirm('Удалить этот трек из плейлиста?')) {
             return;
         }
@@ -334,9 +334,9 @@ const App = {
         }
         // Передаем весь массив и индекс в плеер
         Player.setQueue(this.currentSearchResults, index);
-    }
+    },
 
-        async editPlaylist(playlistId) {
+    async editPlaylist(playlistId) {
         // Сначала получаем текущие данные плейлиста
         try {
             const playlist = await API.request(`/playlists/${playlistId}`);
@@ -402,7 +402,7 @@ const App = {
         }
     },
 
-        async toggleFavorite(trackId, buttonElement) {
+    async toggleFavorite(trackId, buttonElement) {
         try {
             // 1. Ищем плейлист "Избранное" у пользователя
             const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
