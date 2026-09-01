@@ -335,6 +335,116 @@ const App = {
         // Передаем весь массив и индекс в плеер
         Player.setQueue(this.currentSearchResults, index);
     }
+
+        async editPlaylist(playlistId) {
+        // Сначала получаем текущие данные плейлиста
+        try {
+            const playlist = await API.request(`/playlists/${playlistId}`);
+
+            // Создаём модальное окно редактирования
+            const modal = document.createElement('div');
+            modal.id = 'edit-playlist-modal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+
+            modal.innerHTML = `
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
+                    <h3 style="margin-top: 0; margin-bottom: 20px;">Редактировать плейлист</h3>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.9em;">Название</label>
+                        <input type="text" id="edit-pl-title" value="${playlist.title}"
+                               style="width: 100%; padding: 12px; background: #333; border: none; color: white; border-radius: 6px; box-sizing: border-box;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: #aaa; margin-bottom: 5px; font-size: 0.9em;">Описание</label>
+                        <textarea id="edit-pl-desc" rows="3"
+                                  style="width: 100%; padding: 12px; background: #333; border: none; color: white; border-radius: 6px; box-sizing: border-box;">${playlist.description || ''}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="App.savePlaylistEdit(${playlistId})"
+                                style="flex: 1; padding: 12px; background: var(--accent, #1db954); border: none; color: black; border-radius: 8px; cursor: pointer; font-weight: bold;">Сохранить</button>
+                        <button onclick="document.getElementById('edit-playlist-modal').remove()"
+                                style="flex: 1; padding: 12px; background: #444; border: none; color: white; border-radius: 8px; cursor: pointer;">Отмена</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Закрытие по клику на фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        } catch (err) {
+            UI.showToast('Ошибка загрузки данных: ' + err.message, 'error');
+        }
+    },
+
+    async savePlaylistEdit(playlistId) {
+        const title = document.getElementById('edit-pl-title').value.trim();
+        const description = document.getElementById('edit-pl-desc').value.trim();
+
+        if (!title) {
+            UI.showToast('Название не может быть пустым', 'error');
+            return;
+        }
+
+        try {
+            await API.request(`/playlists/${playlistId}`, 'PATCH', { title, description });
+            UI.showToast('Плейлист обновлён', 'success');
+
+            // Закрываем модальное окно и обновляем просмотр
+            const modal = document.getElementById('edit-playlist-modal');
+            if (modal) modal.remove();
+
+            this.openPlaylist(playlistId);
+        } catch (err) {
+            UI.showToast('Ошибка сохранения: ' + err.message, 'error');
+        }
+    },
+
+        async toggleFavorite(trackId, buttonElement) {
+        try {
+            // 1. Ищем плейлист "Избранное" у пользователя
+            const playlists = await API.request(`/users/${this.currentUser.id}/playlists`);
+            let favoritesPlaylist = playlists.find(p => p.title.toLowerCase() === 'избранное' || p.title.toLowerCase() === 'liked songs');
+
+            // 2. Если нет — создаём
+            if (!favoritesPlaylist) {
+                const created = await API.request('/playlists', 'POST', {
+                    title: 'Избранное',
+                    description: 'Автоматически созданный плейлист с любимыми треками',
+                    is_public: false
+                });
+                favoritesPlaylist = created;
+                UI.showToast('Плейлист "Избранное" создан!', 'success');
+            }
+
+            // 3. Проверяем, есть ли трек уже в избранном
+            const alreadyInFavorites = favoritesPlaylist.tracks &&
+                favoritesPlaylist.tracks.some(t => t.spotify_track_id === String(trackId));
+
+            if (alreadyInFavorites) {
+                UI.showToast('Трек уже в избранном', 'info');
+                return;
+            }
+
+            // 4. Добавляем трек
+            await API.request(`/playlists/${favoritesPlaylist.playlist_id}/tracks`, 'POST', {
+                spotify_track_id: String(trackId),
+                position: 0
+            });
+
+            UI.showToast('Добавлено в избранное!', 'success');
+
+            // 5. Меняем иконку на заполненное сердечко
+            if (buttonElement) {
+                buttonElement.textContent = '♥';
+                buttonElement.style.color = '#ff4444';
+            }
+        } catch (err) {
+            UI.showToast('Ошибка: ' + err.message, 'error');
+        }
+    },
 };
 
 // Запуск приложения при загрузке страницы

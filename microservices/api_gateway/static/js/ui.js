@@ -130,7 +130,9 @@ const UI = {
                     <div style="font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title || 'Неизвестно'}</div>
                     <div style="color: #aaa; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist || 'Неизвестный исполнитель'}</div>
                 </div>
-                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                    <button onclick="App.toggleFavorite('${track.id}', this)" title="В избранное"
+                            style="background: none; border: none; color: #888; font-size: 1.3em; cursor: pointer; padding: 5px;">♡</button>
                     <button onclick="App.showPlaylistSelector('${track.id}')" title="Добавить в плейлист"
                             style="background: none; border: 2px solid var(--accent, #1db954); color: var(--accent, #1db954); width: 40px; height: 40px; border-radius: 50%; font-size: 1.2em; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
                     <button onclick="App.playFromSearch(${index})" title="Воспроизвести"
@@ -139,19 +141,7 @@ const UI = {
             </div>
         `).join('');
     },
-//        // Сохраняем текущие результаты в глобальную переменную для плеера
-//        this.currentSearchResults = tracks;
 
-//    renderCreatePlaylist() {
-//        document.getElementById('app-content').innerHTML = `
-//            <h2>Создать новый плейлист</h2>
-//            <form id="create-pl-form" class="form-box" style="max-width: 500px; margin-top: 20px;">
-//                <input type="text" id="pl-title" placeholder="Название" required style="width: 100%; padding: 12px; margin-bottom: 10px; background: #333; border: none; color: white; border-radius: 4px;">
-//                <textarea id="pl-desc" placeholder="Описание" rows="3" style="width: 100%; padding: 12px; margin-bottom: 10px; background: #333; border: none; color: white; border-radius: 4px;"></textarea>
-//                <button type="submit" style="padding: 12px 24px; background: var(--accent); color: black; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Создать</button>
-//            </form>
-//        `;
-//    },
         renderPlaylistDetail(playlist, isOwner) {
         const content = document.getElementById('app-content');
 
@@ -175,10 +165,14 @@ const UI = {
             : '<p style="color: #888; margin-top: 20px;">В этом плейлисте пока нет треков. Найдите музыку и добавьте её сюда!</p>';
 
         // Кнопки действий (только для владельца)
-        const actionButtons = isOwner ? `
+        c        const actionButtons = isOwner ? `
             <button onclick="App.playPlaylist(${playlist.playlist_id})"
                     style="background: var(--accent, #1db954); color: black; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;">
                 ▶ Воспроизвести всё
+            </button>
+            <button onclick="App.editPlaylist(${playlist.playlist_id})"
+                    style="background: transparent; color: white; border: 1px solid #666; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold;">
+                ✏️ Редактировать
             </button>
             <button onclick="App.deletePlaylist(${playlist.playlist_id})"
                     style="background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold;">
@@ -207,6 +201,8 @@ const UI = {
             </div>
         `;
     },
+
+
 
     playFromSearch(index) {
         if (!this.currentSearchResults || !this.currentSearchResults[index]) return;
