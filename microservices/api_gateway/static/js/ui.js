@@ -80,37 +80,6 @@ const UI = {
         `;
     },
 
-//        renderSearchResults(tracks, isPopular = false) {
-//        const container = document.getElementById('search-results-container');
-//        if (!container) {
-//            console.error('search-results-container not found!');
-//            return;
-//        }
-//
-//        if (!tracks || tracks.length === 0) {
-//            container.innerHTML = '<p>Ничего не найдено.</p>';
-//            return;
-//        }
-//
-//        const title = isPopular ? '<h3 style="margin-bottom: 15px;">Популярные треки</h3>' : '';
-//
-//        let html = title;
-//        tracks.forEach((track, index) => {
-//            html += `
-//                <div class="track-card" onclick='App.playFromSearch(${index})' style="display: flex; align-items: center; gap: 15px; padding: 12px; background: #2a2a2a; margin-bottom: 10px; border-radius: 8px; cursor: pointer;">
-//                    <div class="card-cover" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #444; border-radius: 4px;">
-//                        ${track.cover ? `<img src="${track.cover}" alt="cover" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">` : '🎵'}
-//                    </div>
-//                    <div style="flex: 1;">
-//                        <div class="card-title" style="font-weight: bold;">${track.title}</div>
-//                        <div class="card-desc" style="color: #aaa; font-size: 0.9em;">${track.artist}</div>
-//                    </div>
-//                </div>
-//            `;
-//        });
-//
-//        container.innerHTML = html;
-//    },
 
         renderSearchResults(tracks, isPopular = false) {
         const container = document.getElementById('search-results-container');
@@ -165,7 +134,7 @@ const UI = {
             : '<p style="color: #888; margin-top: 20px;">В этом плейлисте пока нет треков. Найдите музыку и добавьте её сюда!</p>';
 
         // Кнопки действий (только для владельца)
-        c        const actionButtons = isOwner ? `
+                const actionButtons = isOwner ? `
             <button onclick="App.playPlaylist(${playlist.playlist_id})"
                     style="background: var(--accent, #1db954); color: black; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;">
                 ▶ Воспроизвести всё
