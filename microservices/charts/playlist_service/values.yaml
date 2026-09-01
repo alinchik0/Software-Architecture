@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: sigmawoman/playlist_service
   pullPolicy: Always
-  tag: "87dc9447df324719128b3767a92f2caa1f8235a8"
+  tag: "1672626412fb6e6496bf66711116b482d691cb4b"
 
 service:
   type: ClusterIP
