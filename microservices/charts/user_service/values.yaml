@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: sigmawoman/user_service
   pullPolicy: Always
-  tag: "ce10d19ede4416cb86b24c14353b0d181926c93f"
+  tag: "e432c377aec2d707aca4c2cec51cb3973a893148"
 
 service:
   type: ClusterIP
