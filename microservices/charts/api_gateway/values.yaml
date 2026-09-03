@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: sigmawoman/api_gateway
   pullPolicy: Always
-  tag: "47830bfbeb92dd185c02f3b4e8a9c758eb926a5f"
+  tag: "6fb26a20d24457c5eaf6e487ad4cf9a0c55cddca"
 
 service:
   type: LoadBalancer
