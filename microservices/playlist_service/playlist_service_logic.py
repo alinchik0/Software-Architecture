@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Optional, List
 
@@ -67,10 +68,42 @@ async def create_playlist(
     except IntegrityError as e:
         await db.rollback()
         raise
+
+    # Инвалидируем кэш списка плейлистов пользователя
+    try:
+        await redis_client.delete(f"user_playlists:{owner_id}")
+        log.info(f"Invalidated user playlists cache for: {owner_id}")
+    except Exception as e:
+        log.warning(f"Cache invalidation failed: {e}")
+
     return await _playlist_to_dict(pl, [])
 
 
+# async def get_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> dict:
+#     pl = await db.get(Playlist, playlist_id)
+#     if not pl:
+#         raise NotFound(f"Playlist {playlist_id} not found")
+#     if not pl.is_public and pl.owner_id != user_id:
+#         raise PermissionDenied("Access denied")
+#
+#     stmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id).order_by(PlaylistTrack.position)
+#     res = await db.execute(stmt)
+#     tracks = list(res.scalars().all())
+#     return await _playlist_to_dict(pl, tracks)
+
 async def get_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> dict:
+    # 1. Пытаемся получить из кэша
+    cache_key = _cache_key(playlist_id)
+    try:
+        cached_data = await redis_client.get(cache_key)
+        if cached_data:
+            log.info(f"Cache hit for playlist {playlist_id}")
+            return json.loads(cached_data)
+    except Exception as e:
+        log.warning(f"Redis cache read failed: {e}")
+
+    # 2. Cache miss — запрашиваем из БД
+    log.info(f"Cache miss for playlist {playlist_id}, fetching from DB")
     pl = await db.get(Playlist, playlist_id)
     if not pl:
         raise NotFound(f"Playlist {playlist_id} not found")
@@ -80,7 +113,17 @@ async def get_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> dict
     stmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id).order_by(PlaylistTrack.position)
     res = await db.execute(stmt)
     tracks = list(res.scalars().all())
-    return await _playlist_to_dict(pl, tracks)
+
+    result = await _playlist_to_dict(pl, tracks)
+
+    # 3. Сохраняем в кэш на 300 секунд (5 минут)
+    try:
+        await redis_client.setex(cache_key, 300, json.dumps(result))
+        log.info(f"Playlist {playlist_id} cached for 300 seconds")
+    except Exception as e:
+        log.warning(f"Redis cache write failed: {e}")
+
+    return result
 
 
 async def update_playlist(
@@ -124,6 +167,14 @@ async def delete_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> N
         raise PermissionDenied("Only owner can delete playlist")
 
     await db.delete(pl)
+    
+    # Инвалидируем кэш списка плейлистов пользователя
+    try:
+        await redis_client.delete(f"user_playlists:{user_id}")
+        log.info(f"Invalidated user playlists cache for: {user_id}")
+    except Exception as e:
+        log.warning(f"Cache invalidation failed: {e}")
+
     await db.commit()
     await _invalidate_cache(playlist_id)
     await kafka_producer.publish("playlist.deleted", playlist_id, user_id, {})
@@ -183,7 +234,34 @@ async def remove_track(db: AsyncSession, playlist_id: int, user_id: int, spotify
     return await _playlist_to_dict(pl, tracks)
 
 
+# async def list_user_playlists(db: AsyncSession, user_id: int, request_user_id: int) -> List[dict]:
+#     stmt = select(Playlist).where(Playlist.owner_id == user_id)
+#     res = await db.execute(stmt)
+#     playlists = list(res.scalars().all())
+#
+#     result = []
+#     for pl in playlists:
+#         if not pl.is_public and pl.owner_id != request_user_id:
+#             continue
+#         stmt_t = select(PlaylistTrack).where(PlaylistTrack.playlist_id == pl.id).order_by(PlaylistTrack.position)
+#         res_t = await db.execute(stmt_t)
+#         tracks = list(res_t.scalars().all())
+#         result.append(await _playlist_to_dict(pl, tracks))
+#     return result
+
 async def list_user_playlists(db: AsyncSession, user_id: int, request_user_id: int) -> List[dict]:
+    # 1. Проверяем кэш
+    cache_key = f"user_playlists:{user_id}"
+    try:
+        cached = await redis_client.get(cache_key)
+        if cached:
+            log.info(f"Cache hit for user playlists: {user_id}")
+            return json.loads(cached)
+    except Exception as e:
+        log.warning(f"Redis cache read failed: {e}")
+
+    # 2. Cache miss — запрашиваем из БД
+    log.info(f"Cache miss for user playlists: {user_id}, fetching from DB")
     stmt = select(Playlist).where(Playlist.owner_id == user_id)
     res = await db.execute(stmt)
     playlists = list(res.scalars().all())
@@ -196,4 +274,12 @@ async def list_user_playlists(db: AsyncSession, user_id: int, request_user_id: i
         res_t = await db.execute(stmt_t)
         tracks = list(res_t.scalars().all())
         result.append(await _playlist_to_dict(pl, tracks))
+
+    # 3. Сохраняем в кэш на 5 минут
+    try:
+        await redis_client.setex(cache_key, 300, json.dumps(result))
+        log.info(f"User playlists cached for 300 seconds: {user_id}")
+    except Exception as e:
+        log.warning(f"Redis cache write failed: {e}")
+
     return result
