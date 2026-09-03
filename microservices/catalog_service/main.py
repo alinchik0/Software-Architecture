@@ -112,7 +112,6 @@ class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):
 	# 	]
 	# 	return catalog_pb2.SearchTracksResponse(tracks=tracks)
 
-
 	async def SearchTracks(self, request, context):
 		query = request.query
 		limit = request.limit
@@ -129,12 +128,16 @@ class CatalogServicer(catalog_pb2_grpc.CatalogServiceServicer):
 				logger.info(f"Cache miss for search: {query}, fetching from Jamendo")
 				tracks_data = await spotify_client.search_tracks(query, limit)
 
-				# Сохраняем в кэш на 10 минут
-				try:
-					await redis_client.setex(cache_key, 600, json.dumps(tracks_data))
-					logger.info(f"Search results cached for 600 seconds: {query}")
-				except Exception as e:
-					logger.warning(f"Redis cache write failed: {e}")
+				# 2. КЭШИРУЕМ ТОЛЬКО ЕСЛИ ЕСТЬ РЕЗУЛЬТАТЫ
+				if tracks_data:
+					try:
+						await redis_client.setex(cache_key, 600, json.dumps(tracks_data))
+						logger.info(f"Search results cached for 600 seconds: {query}")
+					except Exception as e:
+						logger.warning(f"Redis cache write failed: {e}")
+				else:
+					logger.info(f"Search returned 0 tracks, skipping cache for: {query}")
+
 		except Exception as e:
 			logger.warning(f"Redis cache read failed: {e}")
 			tracks_data = await spotify_client.search_tracks(query, limit)
