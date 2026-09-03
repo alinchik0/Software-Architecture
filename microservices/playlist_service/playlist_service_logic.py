@@ -167,7 +167,7 @@ async def delete_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> N
         raise PermissionDenied("Only owner can delete playlist")
 
     await db.delete(pl)
-    
+
     # Инвалидируем кэш списка плейлистов пользователя
     try:
         await redis_client.delete(f"user_playlists:{user_id}")

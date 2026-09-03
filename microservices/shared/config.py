@@ -5,8 +5,8 @@ import os
 
 class SharedSettings(BaseSettings):
 	# ВАЖНО: для async SQLAlchemy нужен префикс postgresql+asyncpg
-	DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/music_db"
-	REDIS_URL: str = "redis://localhost:6379"
+	DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@postgres:5432/music_db"
+	REDIS_URL: str = "redis://redis:6379"
 
 	SECRET_KEY: str = "your-secret-key-change-in-production"
 	ALGORITHM: str = "HS256"
