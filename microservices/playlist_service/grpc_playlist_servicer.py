@@ -96,15 +96,15 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
                     db, request.playlist_id, request.user_id, request.title, request.description, request.is_public
                 )
 
-                # ОТПРАВЛЯЕМ СОБЫТИЕ В KAFKA
-                await kafka_producer.publish(
-                    "playlist.updated",
-                    {
-                        "playlist_id": data["playlist_id"],
-                        "user_id": data["owner_id"],
-                        "title": data["title"]
-                    }
-                )
+                # # ОТПРАВЛЯЕМ СОБЫТИЕ В KAFKA
+                # await kafka_producer.publish(
+                #     "playlist.updated",
+                #     {
+                #         "playlist_id": data["playlist_id"],
+                #         "user_id": data["owner_id"],
+                #         "title": data["title"]
+                #     }
+                # )
 
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)
@@ -124,13 +124,13 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
         try:
             async with async_session_factory() as db:
                 await delete_playlist(db, request.playlist_id, request.user_id)
-                await kafka_producer.publish(
-                    "playlist.deleted",
-                    {
-                        "playlist_id": request.playlist_id,
-                        "user_id": request.user_id
-                    }
-                )
+                # await kafka_producer.publish(
+                #     "playlist.deleted",
+                #     {
+                #         "playlist_id": request.playlist_id,
+                #         "user_id": request.user_id
+                #     }
+                # )
 
                 return playlist_pb2.MessageResponse(success=True, message="deleted")
         except NotFound as e:

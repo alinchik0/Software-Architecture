@@ -175,7 +175,10 @@ async def update_playlist(
     tracks = list(res.scalars().all())
 
     await _invalidate_cache(playlist_id)
-    await kafka_producer.publish("playlist.updated", pl.id, user_id, changed)
+    await kafka_producer.publish(
+        "music_events",
+        {"event_type": "playlist.updated", "playlist_id": pl.id, "user_id": user_id, **changed}
+    )
     return await _playlist_to_dict(pl, tracks)
 
 
@@ -197,7 +200,10 @@ async def delete_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> N
 
     await db.commit()
     await _invalidate_cache(playlist_id)
-    await kafka_producer.publish("playlist.deleted", playlist_id, user_id, {})
+    await kafka_producer.publish(
+        "music_events",
+        {"event_type": "playlist.deleted", "playlist_id": playlist_id, "user_id": user_id}
+    )
 
 
 # async def add_track(
