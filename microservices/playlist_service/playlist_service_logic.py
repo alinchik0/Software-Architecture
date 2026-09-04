@@ -36,16 +36,36 @@ async def _invalidate_cache(playlist_id: int) -> None:
         log.warning(f"Cache invalidation failed: {e}")
 
 
+# async def _playlist_to_dict(pl: Playlist, tracks: List[PlaylistTrack]) -> dict:
+#     tracks_data = []
+#     for t in tracks:
+#         # ТЕПЕРЬ МЫ ИСПОЛЬЗУЕМ catalog_client ЧЕРЕЗ gRPC
+#         meta = await catalog_client.get_track_info(t.spotify_track_id)
+#         tracks_data.append({
+#             "spotify_track_id": t.spotify_track_id,
+#             "position": t.position,
+#             "title": meta.get("title") if meta else None,
+#             "artist": meta.get("artist") if meta else None,
+#         })
+#     return {
+#         "playlist_id": pl.id,
+#         "owner_id": pl.owner_id,
+#         "title": pl.title,
+#         "description": pl.description or "",
+#         "is_public": pl.is_public,
+#         "tracks": tracks_data,
+#     }
+
 async def _playlist_to_dict(pl: Playlist, tracks: List[PlaylistTrack]) -> dict:
     tracks_data = []
     for t in tracks:
-        # ТЕПЕРЬ МЫ ИСПОЛЬЗУЕМ catalog_client ЧЕРЕЗ gRPC
-        meta = await catalog_client.get_track_info(t.spotify_track_id)
+        # Читаем денормализованные данные напрямую из локальной БД
         tracks_data.append({
             "spotify_track_id": t.spotify_track_id,
             "position": t.position,
-            "title": meta.get("title") if meta else None,
-            "artist": meta.get("artist") if meta else None,
+            "title": t.title,
+            "artist": t.artist,
+            "cover": t.cover,
         })
     return {
         "playlist_id": pl.id,
@@ -180,9 +200,39 @@ async def delete_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> N
     await kafka_producer.publish("playlist.deleted", playlist_id, user_id, {})
 
 
+# async def add_track(
+#     db: AsyncSession, playlist_id: int, user_id: int,
+#     spotify_track_id: str, position: int
+# ) -> dict:
+#     pl = await db.get(Playlist, playlist_id)
+#     if not pl:
+#         raise NotFound(f"Playlist {playlist_id} not found")
+#     if pl.owner_id != user_id:
+#         raise PermissionDenied("Only owner can modify playlist")
+#
+#     track = PlaylistTrack(
+#         playlist_id=playlist_id,
+#         spotify_track_id=spotify_track_id,
+#         position=position,
+#     )
+#     db.add(track)
+#     try:
+#         await db.commit()
+#     except IntegrityError:
+#         await db.rollback()
+#         raise ValueError(f"Track {spotify_track_id} already exists in playlist {playlist_id}")
+#
+#     stmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id).order_by(PlaylistTrack.position)
+#     res = await db.execute(stmt)
+#     tracks = list(res.scalars().all())
+#
+#     await _invalidate_cache(playlist_id)
+#     return await _playlist_to_dict(pl, tracks)
+
+
 async def add_track(
-    db: AsyncSession, playlist_id: int, user_id: int,
-    spotify_track_id: str, position: int
+        db: AsyncSession, playlist_id: int, user_id: int,
+        spotify_track_id: str, position: int
 ) -> dict:
     pl = await db.get(Playlist, playlist_id)
     if not pl:
@@ -190,10 +240,14 @@ async def add_track(
     if pl.owner_id != user_id:
         raise PermissionDenied("Only owner can modify playlist")
 
+    # Создаем запись с временными данными (заглушками)
     track = PlaylistTrack(
         playlist_id=playlist_id,
         spotify_track_id=spotify_track_id,
         position=position,
+        title="Загрузка...",
+        artist="Загрузка...",
+        cover=""
     )
     db.add(track)
     try:
@@ -207,8 +261,20 @@ async def add_track(
     tracks = list(res.scalars().all())
 
     await _invalidate_cache(playlist_id)
-    return await _playlist_to_dict(pl, tracks)
 
+    # ПУБЛИКУЕМ СОБЫТИЕ для асинхронного обогащения
+    await kafka_producer.publish(
+        "music_events",  # Убедитесь, что имя топика совпадает с тем, что в config
+        {
+            "event_type": "track.added",
+            "playlist_id": playlist_id,
+            "user_id": user_id,
+            "spotify_track_id": spotify_track_id,
+            "position": position
+        }
+    )
+
+    return await _playlist_to_dict(pl, tracks)
 
 async def remove_track(db: AsyncSession, playlist_id: int, user_id: int, spotify_track_id: str) -> dict:
     pl = await db.get(Playlist, playlist_id)

@@ -19,6 +19,20 @@ class Playlist(Base):
                           order_by="PlaylistTrack.position")
 
 
+# class PlaylistTrack(Base):
+#     __tablename__ = "playlist_tracks"
+#     __table_args__ = (
+#         UniqueConstraint("playlist_id", "spotify_track_id", name="uq_playlist_track"),
+#     )
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     playlist_id = Column(Integer, ForeignKey("playlists.id", ondelete="CASCADE"), nullable=False, index=True)
+#     spotify_track_id = Column(String(64), nullable=False, index=True)
+#     position = Column(Integer, nullable=False, default=0)
+#     added_at = Column(DateTime(timezone=True), server_default=func.now())
+#
+#     playlist = relationship("Playlist", back_populates="tracks")
+
 class PlaylistTrack(Base):
     __tablename__ = "playlist_tracks"
     __table_args__ = (
@@ -28,6 +42,12 @@ class PlaylistTrack(Base):
     id = Column(Integer, primary_key=True, index=True)
     playlist_id = Column(Integer, ForeignKey("playlists.id", ondelete="CASCADE"), nullable=False, index=True)
     spotify_track_id = Column(String(64), nullable=False, index=True)
+
+    # НОВЫЕ ПОЛЯ для асинхронного обогащения (денормализация)
+    title = Column(String(255), nullable=True, default="Загрузка...")
+    artist = Column(String(255), nullable=True, default="Загрузка...")
+    cover = Column(String(512), nullable=True, default="")
+
     position = Column(Integer, nullable=False, default=0)
     added_at = Column(DateTime(timezone=True), server_default=func.now())
 
