@@ -13,15 +13,6 @@ const App = {
             this.showAuth();
         }
 
-//        // Навигация по сайдбару
-//        document.querySelectorAll('.nav-btn').forEach(btn => {
-//            btn.addEventListener('click', (e) => {
-//                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-//                e.target.classList.add('active');
-//                this.navigate(e.target.dataset.view);
-//            });
-//        });
-
         // Навигация по сайдбару
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -43,13 +34,7 @@ const App = {
         });
 
 
-//        // Обработчик формы создания плейлиста (делегирование событий)
-//        document.getElementById('app-content').addEventListener('submit', async (e) => {
-//            if (e.target.id === 'create-pl-form') {
-//                e.preventDefault();
-//                await this.createPlaylist();
-//            }
-//        });
+
     },
 
     showAuth() {
@@ -70,12 +55,6 @@ const App = {
         }
     },
 
-
-//    navigate(view) {
-//        if (view === 'library') this.loadLibrary();
-//        else if (view === 'search') this.renderSearchView();
-//        else if (view === 'create') UI.renderCreatePlaylist();
-//    },
 
     navigate(view, param = null) {
         // Обновляем URL с хэш-роутингом
@@ -262,6 +241,27 @@ const App = {
         }
     },
 
+//    async addTrackToPlaylist(trackId, playlistId) {
+//        // Закрываем модальное окно
+//        const modal = document.getElementById('playlist-selector-modal');
+//        if (modal) modal.remove();
+//
+//        try {
+//            await API.request(`/playlists/${playlistId}/tracks`, 'POST', {
+//                spotify_track_id: trackId,
+//                position: 0
+//            });
+//
+//            UI.showToast('Трек добавлен в плейлист!', 'success');
+//        } catch (err) {
+//            // Обрабатываем случай дубликата
+//            const message = err.message && err.message.toLowerCase().includes('already')
+//                ? 'Этот трек уже есть в плейлисте'
+//                : 'Ошибка добавления: ' + err.message;
+//            UI.showToast(message, 'error');
+//        }
+//    },
+
     async addTrackToPlaylist(trackId, playlistId) {
         // Закрываем модальное окно
         const modal = document.getElementById('playlist-selector-modal');
@@ -269,13 +269,21 @@ const App = {
 
         try {
             await API.request(`/playlists/${playlistId}/tracks`, 'POST', {
-                spotify_track_id: trackId,
+                spotify_track_id: String(trackId),
                 position: 0
             });
 
-            UI.showToast('Трек добавлен в плейлист!', 'success');
+            UI.showToast('Трек добавлен в плейлист! Загрузка данных...', 'success');
+
+            // Если мы находимся внутри этого плейлиста, обновляем вид через 3 секунды
+            // (даём время enrichment consumer обновить метаданные)
+            const currentView = document.getElementById('playlist-tracks-container');
+            if (currentView) {
+                setTimeout(() => {
+                    this.openPlaylist(playlistId);
+                }, 3000);
+            }
         } catch (err) {
-            // Обрабатываем случай дубликата
             const message = err.message && err.message.toLowerCase().includes('already')
                 ? 'Этот трек уже есть в плейлисте'
                 : 'Ошибка добавления: ' + err.message;
