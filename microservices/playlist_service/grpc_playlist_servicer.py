@@ -151,16 +151,16 @@ class PlaylistServiceServicer(playlist_pb2_grpc.PlaylistServiceServicer):
                     request.spotify_track_id, request.position
                 )
 
-                # ОТПРАВЛЯЕМ СОБЫТИЕ В KAFKA
-                await kafka_producer.publish(
-                    "track.added",
-                    {
-                        "playlist_id": request.playlist_id,
-                        "user_id": request.user_id,
-                        "spotify_track_id": request.spotify_track_id,
-                        "position": request.position
-                    }
-                )
+                # # ОТПРАВЛЯЕМ СОБЫТИЕ В KAFKA
+                # await kafka_producer.publish(
+                #     "track.added",
+                #     {
+                #         "playlist_id": request.playlist_id,
+                #         "user_id": request.user_id,
+                #         "spotify_track_id": request.spotify_track_id,
+                #         "position": request.position
+                #     }
+                # )
 
                 resp = playlist_pb2.PlaylistResponse()
                 _fill_playlist_response(resp, data)

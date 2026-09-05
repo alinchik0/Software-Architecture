@@ -176,8 +176,14 @@ async def update_playlist(
 
     await _invalidate_cache(playlist_id)
     await kafka_producer.publish(
-        "music_events",
-        {"event_type": "playlist.updated", "playlist_id": pl.id, "user_id": user_id, **changed}
+        "playlist.updated",
+        {
+            "playlist_id": pl.id,
+            "user_id": user_id,
+            "title": pl.title,
+            "description": pl.description,
+            "is_public": pl.is_public
+        }
     )
     return await _playlist_to_dict(pl, tracks)
 
@@ -201,8 +207,11 @@ async def delete_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> N
     await db.commit()
     await _invalidate_cache(playlist_id)
     await kafka_producer.publish(
-        "music_events",
-        {"event_type": "playlist.deleted", "playlist_id": playlist_id, "user_id": user_id}
+        "playlist.deleted",
+        {
+            "playlist_id": playlist_id,
+            "user_id": user_id
+        }
     )
 
 
@@ -270,9 +279,8 @@ async def add_track(
 
     # ПУБЛИКУЕМ СОБЫТИЕ для асинхронного обогащения
     await kafka_producer.publish(
-        "music_events",  # Убедитесь, что имя топика совпадает с тем, что в config
+        "track.added",  # <-- ПРАВИЛЬНО: это тип события, а не имя топика
         {
-            "event_type": "track.added",
             "playlist_id": playlist_id,
             "user_id": user_id,
             "spotify_track_id": spotify_track_id,
