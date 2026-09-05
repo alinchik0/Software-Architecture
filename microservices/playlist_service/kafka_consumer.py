@@ -63,7 +63,8 @@ async def enrichment_consumer_task():
 
 				# Реагируем только на события добавления трека
 				if event.get("event_type") == "track.added":
-					track_id = str(event.get("spotify_track_id"))
+					payload = event.get("payload", {})
+					track_id = str(payload.get("spotify_track_id"))
 					log.info("Processing track.added event for track_id=%s", track_id)
 
 					try:
