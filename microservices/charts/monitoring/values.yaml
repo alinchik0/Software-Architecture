@@ -1,5 +1,7 @@
 # --- Настройки для Prometheus Stack (включает Grafana) ---
 prometheus:
+  admissionWebhooks:
+    enabled: false   # <-- ДОБАВЬТЕ ЭТИ ДВЕ СТРОКИ
   grafana:
     adminPassword: "admin"
     additionalDataSources:
