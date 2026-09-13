@@ -7,7 +7,7 @@ import grpc
 from concurrent import futures
 from sqlalchemy import text
 
-# 🔧 Настраиваем пути для импортов
+# Настраиваем пути для импортов
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
@@ -21,8 +21,6 @@ from user_service.protos.generated import user_pb2, user_pb2_grpc, auth_pb2_grpc
 from user_service.grpc_auth_servicer import AuthServicer
 
 
-# Предполагаем, что у вас уже есть UserServiceServicer для Ping
-# Если нет, создайте минимальный для совместимости
 class UserServiceServicer(user_pb2_grpc.UserServiceServicer):
 	def Ping(self, request, context):
 		return user_pb2.PingResponse(message="pong from user-service")
@@ -46,16 +44,14 @@ async def init_db():
 
 async def health_check():
 	"""Проверяет подключение к БД и Redis."""
-	# Проверка PostgreSQL
 	try:
 		async with engine.connect() as conn:
-			await conn.execute(text("SELECT 1"))  # ✅ Обернули в text()
+			await conn.execute(text("SELECT 1"))
 		log.info("Connected to PostgreSQL")
 	except Exception as e:
 		log.error(f"PostgreSQL connection failed: {e}")
 		raise
 
-	# Проверка Redis
 	try:
 		await redis_client.ping()
 		log.info("Connected to Redis")
@@ -94,9 +90,8 @@ async def serve():
 
 		# Регистрируем обработчик сигналов
 		loop = asyncio.get_event_loop()
-		for sig in (None,):  # Можно добавить signal.SIGINT, signal.SIGTERM
-			pass  # В production добавьте обработку сигналов
-
+		for sig in (None,):
+			pass
 		await server.wait_for_termination()
 
 	except KeyboardInterrupt:

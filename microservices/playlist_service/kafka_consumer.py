@@ -5,7 +5,6 @@ import json
 import logging
 import grpc
 
-# Добавляем корень проекта в путь для импорта shared и catalog_service
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
 	sys.path.insert(0, ROOT)

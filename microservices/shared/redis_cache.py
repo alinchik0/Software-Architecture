@@ -56,8 +56,6 @@ async def is_token_blacklisted(token: str) -> bool:
 		return exists > 0
 	except redis.RedisError as e:
 		log.error(f"Failed to check token blacklist: {e}")
-		# В случае ошибки Redis, считаем токен валидным (fail-open)
-		# или можно вернуть True для fail-close (более безопасно)
 		return False
 	except Exception as e:
 		log.error(f"Unexpected error checking token blacklist: {e}")
@@ -65,12 +63,6 @@ async def is_token_blacklisted(token: str) -> bool:
 
 
 async def ping() -> bool:
-	"""
-    Проверяет подключение к Redis.
-
-    Returns:
-        bool: True если Redis доступен, False иначе
-    """
 	try:
 		await redis_client.ping()
 		return True
@@ -83,10 +75,6 @@ async def ping() -> bool:
 
 
 async def close() -> None:
-	"""
-    Graceful shutdown Redis клиента.
-    Закрывает все соединения и освобождает ресурсы.
-    """
 	try:
 		await redis_client.close()
 		log.info("Redis connection closed")
@@ -95,12 +83,6 @@ async def close() -> None:
 
 
 async def health_check() -> dict:
-	"""
-    Выполняет health check Redis.
-
-    Returns:
-        dict: Информация о состоянии Redis
-    """
 	try:
 		info = await redis_client.info()
 		return {

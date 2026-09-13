@@ -241,26 +241,6 @@ const App = {
         }
     },
 
-//    async addTrackToPlaylist(trackId, playlistId) {
-//        // Закрываем модальное окно
-//        const modal = document.getElementById('playlist-selector-modal');
-//        if (modal) modal.remove();
-//
-//        try {
-//            await API.request(`/playlists/${playlistId}/tracks`, 'POST', {
-//                spotify_track_id: trackId,
-//                position: 0
-//            });
-//
-//            UI.showToast('Трек добавлен в плейлист!', 'success');
-//        } catch (err) {
-//            // Обрабатываем случай дубликата
-//            const message = err.message && err.message.toLowerCase().includes('already')
-//                ? 'Этот трек уже есть в плейлисте'
-//                : 'Ошибка добавления: ' + err.message;
-//            UI.showToast(message, 'error');
-//        }
-//    },
 
     async addTrackToPlaylist(trackId, playlistId) {
         // Закрываем модальное окно

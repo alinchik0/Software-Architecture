@@ -17,7 +17,6 @@ class CatalogClient:
 
     def _get_stub(self):
         # Создаем канал и stub лениво, внутри уже запущенного event loop
-        # ВАЖНО: в Kubernetes используем имя сервиса 'catalog-service', а не localhost
         if self._channel is None:
             logger.info("Initializing gRPC channel to Catalog Service at catalog-service:50053...")
             self._channel = grpc.aio.insecure_channel('catalog-service:50053')

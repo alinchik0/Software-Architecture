@@ -36,26 +36,6 @@ async def _invalidate_cache(playlist_id: int) -> None:
         log.warning(f"Cache invalidation failed: {e}")
 
 
-# async def _playlist_to_dict(pl: Playlist, tracks: List[PlaylistTrack]) -> dict:
-#     tracks_data = []
-#     for t in tracks:
-#         # ТЕПЕРЬ МЫ ИСПОЛЬЗУЕМ catalog_client ЧЕРЕЗ gRPC
-#         meta = await catalog_client.get_track_info(t.spotify_track_id)
-#         tracks_data.append({
-#             "spotify_track_id": t.spotify_track_id,
-#             "position": t.position,
-#             "title": meta.get("title") if meta else None,
-#             "artist": meta.get("artist") if meta else None,
-#         })
-#     return {
-#         "playlist_id": pl.id,
-#         "owner_id": pl.owner_id,
-#         "title": pl.title,
-#         "description": pl.description or "",
-#         "is_public": pl.is_public,
-#         "tracks": tracks_data,
-#     }
-
 async def _playlist_to_dict(pl: Playlist, tracks: List[PlaylistTrack]) -> dict:
     tracks_data = []
     for t in tracks:
@@ -98,18 +78,6 @@ async def create_playlist(
 
     return await _playlist_to_dict(pl, [])
 
-
-# async def get_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> dict:
-#     pl = await db.get(Playlist, playlist_id)
-#     if not pl:
-#         raise NotFound(f"Playlist {playlist_id} not found")
-#     if not pl.is_public and pl.owner_id != user_id:
-#         raise PermissionDenied("Access denied")
-#
-#     stmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id).order_by(PlaylistTrack.position)
-#     res = await db.execute(stmt)
-#     tracks = list(res.scalars().all())
-#     return await _playlist_to_dict(pl, tracks)
 
 async def get_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> dict:
     # 1. Пытаемся получить из кэша
@@ -215,36 +183,6 @@ async def delete_playlist(db: AsyncSession, playlist_id: int, user_id: int) -> N
     )
 
 
-# async def add_track(
-#     db: AsyncSession, playlist_id: int, user_id: int,
-#     spotify_track_id: str, position: int
-# ) -> dict:
-#     pl = await db.get(Playlist, playlist_id)
-#     if not pl:
-#         raise NotFound(f"Playlist {playlist_id} not found")
-#     if pl.owner_id != user_id:
-#         raise PermissionDenied("Only owner can modify playlist")
-#
-#     track = PlaylistTrack(
-#         playlist_id=playlist_id,
-#         spotify_track_id=spotify_track_id,
-#         position=position,
-#     )
-#     db.add(track)
-#     try:
-#         await db.commit()
-#     except IntegrityError:
-#         await db.rollback()
-#         raise ValueError(f"Track {spotify_track_id} already exists in playlist {playlist_id}")
-#
-#     stmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id).order_by(PlaylistTrack.position)
-#     res = await db.execute(stmt)
-#     tracks = list(res.scalars().all())
-#
-#     await _invalidate_cache(playlist_id)
-#     return await _playlist_to_dict(pl, tracks)
-
-
 async def add_track(
         db: AsyncSession, playlist_id: int, user_id: int,
         spotify_track_id: str, position: int
@@ -312,22 +250,6 @@ async def remove_track(db: AsyncSession, playlist_id: int, user_id: int, spotify
 
     await _invalidate_cache(playlist_id)
     return await _playlist_to_dict(pl, tracks)
-
-
-# async def list_user_playlists(db: AsyncSession, user_id: int, request_user_id: int) -> List[dict]:
-#     stmt = select(Playlist).where(Playlist.owner_id == user_id)
-#     res = await db.execute(stmt)
-#     playlists = list(res.scalars().all())
-#
-#     result = []
-#     for pl in playlists:
-#         if not pl.is_public and pl.owner_id != request_user_id:
-#             continue
-#         stmt_t = select(PlaylistTrack).where(PlaylistTrack.playlist_id == pl.id).order_by(PlaylistTrack.position)
-#         res_t = await db.execute(stmt_t)
-#         tracks = list(res_t.scalars().all())
-#         result.append(await _playlist_to_dict(pl, tracks))
-#     return result
 
 async def list_user_playlists(db: AsyncSession, user_id: int, request_user_id: int) -> List[dict]:
     # 1. Проверяем кэш
