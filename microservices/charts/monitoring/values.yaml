@@ -1,7 +1,15 @@
 # --- Настройки для Prometheus Stack (включает Grafana) ---
-prometheus:
-  admissionWebhooks:
-    enabled: false   # <-- ДОБАВЬТЕ ЭТИ ДВЕ СТРОКИ
+prometheus: # <-- это alias для kube-prometheus-stack, указанный в вашем Chart.yaml
+  prometheusOperator:
+    admissionWebhooks:
+      enabled: false          # Отключаем вебхуки оператора
+      patch:
+        enabled: false        # Отключаем job "admission-create" (именно он вызывает ошибку)
+  prometheus:
+    prometheusSpec:
+      admissionWebhooks:
+        enabled: false        # Отключаем вебхуки для самого Prometheus
+
   grafana:
     adminPassword: "admin"
     additionalDataSources:
@@ -13,15 +21,12 @@ prometheus:
         isDefault: false
         editable: false
 
-
 loki:
   promtail:
     enabled: true
     config:
       clients:
         - url: http://microservices-monitoring-loki:3100/loki/api/v1/push
-
-      # 👇 ВАЖНО: Настраиваем сбор логов со всех подов в кластере
       scrape_configs:
         - job_name: kubernetes-pods
           pipeline_stages:
@@ -29,20 +34,15 @@ loki:
           kubernetes_sd_configs:
             - role: pod
           relabel_configs:
-            # Берем метку 'app' из labels пода и делаем её меткой Loki
             - source_labels:
                 - __meta_kubernetes_pod_label_app
               target_label: app
-            # Берем имя контейнера
             - source_labels:
                 - __meta_kubernetes_pod_container_name
               target_label: container
-            # Берем namespace
             - source_labels:
                 - __meta_kubernetes_namespace
               target_label: namespace
-
-
   grafana:
     sidecar:
       datasources:
