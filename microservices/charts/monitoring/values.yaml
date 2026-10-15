@@ -1,15 +1,16 @@
-# --- Настройки для Prometheus Stack (включает Grafana) ---
-prometheus: # <-- это alias для kube-prometheus-stack, указанный в вашем Chart.yaml
+# ==========================================
+# 1. PROMETHEUS & GRAFANA (Существующее)
+# ==========================================
+prometheus:
   prometheusOperator:
     admissionWebhooks:
-      enabled: false          # Отключаем вебхуки оператора
+      enabled: false
       patch:
-        enabled: false        # Отключаем job "admission-create" (именно он вызывает ошибку)
+        enabled: false
   prometheus:
     prometheusSpec:
       admissionWebhooks:
-        enabled: false        # Отключаем вебхуки для самого Prometheus
-
+        enabled: false
   grafana:
     adminPassword: "admin"
     additionalDataSources:
@@ -20,7 +21,20 @@ prometheus: # <-- это alias для kube-prometheus-stack, указанный 
         access: proxy
         isDefault: false
         editable: false
+      - name: Jaeger
+        type: jaeger
+        uid: jaeger
+        url: http://microservices-monitoring-jaeger:16686
+        access: proxy
+        isDefault: false
+        editable: false
+    sidecar:
+      datasources:
+        enabled: false
 
+# ==========================================
+# 2. LOKI & PROMTAIL (Существующее, для +5 баллов)
+# ==========================================
 loki:
   promtail:
     enabled: true
@@ -34,16 +48,97 @@ loki:
           kubernetes_sd_configs:
             - role: pod
           relabel_configs:
-            - source_labels:
-                - __meta_kubernetes_pod_label_app
+            - source_labels: [__meta_kubernetes_pod_label_app]
               target_label: app
-            - source_labels:
-                - __meta_kubernetes_pod_container_name
+            - source_labels: [__meta_kubernetes_pod_container_name]
               target_label: container
-            - source_labels:
-                - __meta_kubernetes_namespace
+            - source_labels: [__meta_kubernetes_namespace]
               target_label: namespace
-  grafana:
-    sidecar:
-      datasources:
-        enabled: false
+
+# ==========================================
+# 3. JAEGER (НОВОЕ: для трассировки)
+# ==========================================
+jaeger:
+  allInOne:
+    enabled: true
+    image:
+      tag: "1.53" # Стабильная версия
+    extraEnv:
+      - name: COLLECTOR_OTLP_ENABLED
+        value: "true" # Включаем приём OTLP напрямую (на случай, если захотим слать мимо коллектора)
+  storage:
+    type: memory # Для демо/учебы достаточно памяти, не требует Persistent Volume
+
+# ==========================================
+# 4. OPENTELEMETRY COLLECTOR (НОВОЕ: центральный хаб)
+# ==========================================
+otel-collector:
+  mode: "deployment"
+
+  # Конфигурация пайплайнов обработки данных
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      batch: {} # Группирует данные для эффективной отправки
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 200
+        spike_limit_mib: 50
+
+    exporters:
+      debug:
+        verbosity: detailed # Полезно для отладки, видно в подах коллектора
+      otlp/jaeger:
+        endpoint: "microservices-monitoring-jaeger:4317" # Имя сервиса Jaeger в K8s
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        namespace: "microservices"
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp/jaeger, debug]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus, debug]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug] # Логи уже собираются Promtail, но это для полноты картины
+
+  # Открываем порты для приёма данных от микросервисов
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      protocol: TCP
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      protocol: TCP
+    metrics:
+      enabled: true
+      containerPort: 8889
+      servicePort: 8889
+      protocol: TCP
+
+  # Автоматически создаём ServiceMonitor, чтобы Prometheus знал, что нужно скрейпить метрики с коллектора
+  serviceMonitor:
+    enabled: true
+    metricsEndpoints:
+      - port: metrics
+        interval: 15s

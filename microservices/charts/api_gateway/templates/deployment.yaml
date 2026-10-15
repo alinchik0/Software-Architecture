@@ -24,7 +24,11 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
-          env:
+        env:
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://microservices-monitoring-otel-collector:4317"
+          - name: OTEL_SERVICE_NAME
+            value: "api-gateway"
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}

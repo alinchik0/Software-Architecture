@@ -5,22 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94caf971-34ae-4815-aa2b-93bad4d342ac" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../mas/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/../mas/.idea/.name" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_gateway/routers/catalog.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/routers/catalog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_gateway/static/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/static/js/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_gateway/static/js/ui.js" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/static/js/ui.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalog_service/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/catalog_service/spotify_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/catalog_service/spotify_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/istio/circuit-breaker.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/istio/circuit-breaker.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locustfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/locustfile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/catalog_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/catalog_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/grpc_playlist_servicer.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/grpc_playlist_servicer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/kafka_consumer.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/kafka_consumer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playlist_service/playlist_service_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/playlist_service/playlist_service_logic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shared/models/playlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/models/playlist.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shared/redis_cache.py" beforeDir="false" afterPath="$PROJECT_DIR$/shared/redis_cache.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_service/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_service/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api_gateway/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/charts/monitoring/Chart.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/charts/monitoring/Chart.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/charts/monitoring/values.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/charts/monitoring/values.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

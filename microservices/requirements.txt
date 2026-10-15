@@ -27,3 +27,15 @@ requests>=2.31.0
 
 
 slowapi>=0.1.9
+
+# OpenTelemetry - базовые библиотеки
+opentelemetry-api>=1.21.0
+opentelemetry-sdk>=1.21.0
+opentelemetry-exporter-otlp-proto-grpc>=1.21.0
+
+# Автоматическая инструментация FastAPI и gRPC
+opentelemetry-instrumentation-fastapi>=0.42b0
+opentelemetry-instrumentation-grpc>=0.42b0
+
+# Для работы с Prometheus (если хочешь экспортировать метрики напрямую)
+prometheus-client>=0.19.0
