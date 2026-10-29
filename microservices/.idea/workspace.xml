@@ -5,13 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94caf971-34ae-4815-aa2b-93bad4d342ac" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../mas/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/../mas/.idea/.name" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api_gateway/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/api_gateway/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/charts/monitoring/Chart.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/charts/monitoring/Chart.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/charts/monitoring/values.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/charts/monitoring/values.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/charts/monitoring/Chart.lock" beforeDir="false" afterPath="$PROJECT_DIR$/charts/monitoring/Chart.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

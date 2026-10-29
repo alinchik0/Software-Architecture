@@ -5,5 +5,11 @@ dependencies:
 - name: loki-stack
   repository: https://grafana.github.io/helm-charts
   version: 2.10.2
-digest: sha256:cb3bd65f711b5d497eff305770fc42a9f84a4199bf24a29910f212a324d860ec
-generated: "2026-08-21T15:13:38.4862743+03:00"
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.94.0
+- name: jaeger
+  repository: https://jaegertracing.github.io/helm-charts
+  version: 3.1.0
+digest: sha256:75de2d15f27d513dcd56c2cfe62b04e05216fd2365c34e883db44be8782a8680
+generated: "2026-10-15T13:59:47.2069148+03:00"
