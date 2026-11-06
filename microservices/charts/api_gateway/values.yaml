@@ -1,9 +1,9 @@
 replicaCount: 2
 
 image:
-  repository: api-gateway
+  repository: sigmawoman/api_gateway
   pullPolicy: IfNotPresent
-  tag: "otel"
+  tag: "8a9e3c7feacebeb025e8fbcb820eb01ccd8db93f"
 
 service:
   type: LoadBalancer
