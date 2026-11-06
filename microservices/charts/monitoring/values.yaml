@@ -70,12 +70,18 @@ jaeger:
     type: memory # Для демо/учебы достаточно памяти, не требует Persistent Volume
 
 # ==========================================
-# 4. OPENTELEMETRY COLLECTOR (НОВОЕ: центральный хаб)
+# 4. OPENTELEMETRY COLLECTOR
 # ==========================================
 otel-collector:
   mode: "deployment"
 
-  # Конфигурация пайплайнов обработки данных
+  # === ДОБАВЛЕНО: Явное указание образа ===
+  image:
+    repository: "otel/opentelemetry-collector"
+    tag: "0.94.0"
+    pullPolicy: IfNotPresent
+  # ========================================
+
   config:
     receivers:
       otlp:
@@ -86,7 +92,7 @@ otel-collector:
             endpoint: 0.0.0.0:4318
 
     processors:
-      batch: {} # Группирует данные для эффективной отправки
+      batch: {}
       memory_limiter:
         check_interval: 1s
         limit_mib: 200
@@ -94,9 +100,9 @@ otel-collector:
 
     exporters:
       debug:
-        verbosity: detailed # Полезно для отладки, видно в подах коллектора
+        verbosity: detailed
       otlp/jaeger:
-        endpoint: "microservices-monitoring-jaeger:4317" # Имя сервиса Jaeger в K8s
+        endpoint: "microservices-monitoring-jaeger:4317"
         tls:
           insecure: true
       prometheus:
@@ -116,9 +122,8 @@ otel-collector:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug] # Логи уже собираются Promtail, но это для полноты картины
+          exporters: [debug]
 
-  # Открываем порты для приёма данных от микросервисов
   ports:
     otlp:
       enabled: true
@@ -136,7 +141,6 @@ otel-collector:
       servicePort: 8889
       protocol: TCP
 
-  # Автоматически создаём ServiceMonitor, чтобы Prometheus знал, что нужно скрейпить метрики с коллектора
   serviceMonitor:
     enabled: true
     metricsEndpoints:
