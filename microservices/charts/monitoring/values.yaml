@@ -62,12 +62,11 @@ jaeger:
   allInOne:
     enabled: true
     image:
-      tag: "1.53" # Стабильная версия
-    extraEnv:
-      - name: COLLECTOR_OTLP_ENABLED
-        value: "true" # Включаем приём OTLP напрямую (на случай, если захотим слать мимо коллектора)
+      tag: "1.53"
+    # extraEnv удалён, так как OTLP включён по умолчанию в этой версии чарта
   storage:
-    type: memory # Для демо/учебы достаточно памяти, не требует Persistent Volume
+    type: memory
+
 
 # ==========================================
 # 4. OPENTELEMETRY COLLECTOR
